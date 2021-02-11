@@ -20,7 +20,7 @@ const panningMachine = createMachine({
     },
     outsideWidget: {
       on: {
-        ENTER_WIDGET: "onWidget",
+        ENTER_WIDGET: "onWidget.moving",
       },
     },
     onWidget: {
@@ -29,24 +29,31 @@ const panningMachine = createMachine({
         rest: {
           on: {
             MOUSE_MOVE: "moving",
+            START_PANNING: "startingPanning",
           },
         },
         moving: {
           on: {
-            START_PANNING: "startingPanning",
             LEAVE_WIDGET: "#pan.outsideWidget",
-            STOP_ON_WIDGET: "rest",
+            STOP_MOVING: "rest",
+            START_PANNING: "startingPanning",
           },
         },
         startingPanning: {
           on: {
-            PAN: "panning",
+            PAN: "panningInsideWidget",
           },
         },
-        panning: {
+        panningInsideWidget: {
           on: {
-            STOP_PANNING_OUTSIDE_WIDGET: "#pan.outsideWidget",
-            STOP_PANNING_INSIDE_WIDGET: "rest"
+            STOP_PANNING: "rest",
+            LEAVE_WIDGET: "panningOutsideWidget",
+          },
+        },
+        panningOutsideWidget: {
+          on: {
+            STOP_PANNING: "#pan.outsideWidget",
+            ENTER_WIDGET: "panningInsideWidget",
           },
         },
       },
@@ -57,40 +64,38 @@ const panningMachine = createMachine({
 // Interpret the machine, and add a listener for whenever a transition occurs.
 const panningService = interpret(panningMachine).onTransition((state) => {
   const states = state.toStrings();
-  console.log(states[states.length - 1]);
+  console.log(`\t${states[states.length - 1]}\t\t\t${state.event.type}`);
 });
 
 const map = document.getElementById("map");
 
 let timer;
-function mousemoveHandler() {
-  panningService.send("MOUSE_MOVE");
-  clearTimeout(timer);
-  timer = setTimeout(() => {
-    if (map.matches(":hover")) {
-      panningService.send("STOP_ON_WIDGET");
-    }
-  }, 300);
-}
-myMap.on("mousemove", mousemoveHandler);
+let dragging = false;
 
-myMap.on("movestart", () => {
-  myMap.off("mousemove", mousemoveHandler);
+function mousemoveHandler() {
+  if (!dragging) {
+    panningService.send("MOUSE_MOVE");
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      panningService.send("STOP_MOVING");
+    }, 300);
+  } else {
+    panningService.send("PAN");
+  }
+}
+document.addEventListener("mousemove", mousemoveHandler);
+
+map.addEventListener("mousedown", () => {
   clearTimeout(timer);
+  dragging = true;
   panningService.send("START_PANNING");
 });
 
-myMap.on("move", () => {
-  panningService.send("PAN");
-});
-
-myMap.on("moveend", () => {
-  if (map.matches(":hover")) {
-    panningService.send("STOP_PANNING_INSIDE_WIDGET");
-  } else {
-    panningService.send("STOP_PANNING_OUTSIDE_WIDGET");
+document.addEventListener("mouseup", () => {
+  if (dragging) {
+    panningService.send("STOP_PANNING");
+    dragging = false;
   }
-  myMap.on("mousemove", mousemoveHandler);
 });
 
 map.addEventListener("mouseenter", () => {
@@ -98,6 +103,7 @@ map.addEventListener("mouseenter", () => {
 });
 
 map.addEventListener("mouseleave", () => {
+  clearTimeout(timer);
   panningService.send("LEAVE_WIDGET");
 });
 
