@@ -37,6 +37,7 @@ const panningMachine = createMachine({
             LEAVE_WIDGET: "#pan.outsideWidget",
             STOP_MOVING: "rest",
             START_PANNING: "startingPanning",
+            MOUSE_MOVE: "moving",
           },
         },
         startingPanning: {
@@ -48,12 +49,14 @@ const panningMachine = createMachine({
           on: {
             STOP_PANNING: "rest",
             LEAVE_WIDGET: "panningOutsideWidget",
+            PAN: "panningInsideWidget",
           },
         },
         panningOutsideWidget: {
           on: {
             STOP_PANNING: "#pan.outsideWidget",
             ENTER_WIDGET: "panningInsideWidget",
+            PAN: "panningOutsideWidget",
           },
         },
       },
