@@ -1,0 +1,15 @@
+body,
+html {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#box {
+  position: absolute;
+  height: 10vmin;
+  width: 10vmin;
+  background: skyblue;
+  border-radius: 1rem;
+}
