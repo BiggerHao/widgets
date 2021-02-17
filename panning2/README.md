@@ -1,6 +1,4 @@
-# Tooltip
-
-Note: In this implementation, once the tooltip appears, any mouse movement will cause the tooltip to hide.
+# Panning
 
 ## How to use
 
