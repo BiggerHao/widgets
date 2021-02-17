@@ -52,6 +52,7 @@ const panningMachine = createMachine(
           startingPanning: {
             on: {
               mousemove: "panningInsideWidget",
+              mouseup: "idle",
             },
           },
           panningInsideWidget: {
