@@ -1,5 +1,7 @@
 # Pannable map
 
+This is a panning model built on an interactive map.
+
 ## How to use
 
 1. Create a file called `config.js` under the repository folder.
