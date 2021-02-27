@@ -30,7 +30,13 @@ const panningMachine = createMachine(
           idle: {
             on: {
               mousemove: "moving",
-              mousedown: "startingPanning",
+              mousedown: {
+                target: "startingPanning",
+                actions: assign({
+                  cursorX: (context, event) => event.clientX,
+                  cursorY: (context, event) => event.clientY,
+                }),
+              },
             },
           },
           moving: {
