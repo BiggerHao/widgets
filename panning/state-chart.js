@@ -1,121 +1,104 @@
-const { createMachine, interpret } = XState;
+const { createMachine, assign, interpret } = XState;
 
-const panningMachine = createMachine({
-  // Machine identifier
-  id: "pan",
+const map = document.getElementById("map");
 
-  // Initial state
-  initial: "initialized",
-
-  // Local context for entire machine
-  context: {},
-
-  // State definitions
-  states: {
-    initialized: {
-      on: {
-        ENTER_WIDGET: "onWidget",
-        LEAVE_WIDGET: "outsideWidget",
+const panningMachine = createMachine(
+  {
+    id: "pan",
+    initial: "initialized",
+    states: {
+      initialized: {
+        always: [
+          { target: "onWidget", cond: "hoverOnWidget" },
+          { target: "outsideWidget" },
+        ],
       },
-    },
-    outsideWidget: {
-      on: {
-        ENTER_WIDGET: "onWidget.moving",
+      outsideWidget: {
+        on: {
+          mouseenter: "onWidget",
+        },
       },
-    },
-    onWidget: {
-      initial: "rest",
-      states: {
-        rest: {
-          on: {
-            MOUSE_MOVE: "moving",
-            START_PANNING: "startingPanning",
+      onWidget: {
+        initial: "moving",
+        states: {
+          idle: {
+            on: {
+              mousemove: "moving",
+              mousedown: {
+                target: "startingPanning",
+              },
+            },
           },
-        },
-        moving: {
-          on: {
-            LEAVE_WIDGET: "#pan.outsideWidget",
-            STOP_MOVING: "rest",
-            START_PANNING: "startingPanning",
-            MOUSE_MOVE: "moving",
+          moving: {
+            on: {
+              mouseleave: "#pan.outsideWidget",
+              mousedown: {
+                target: "startingPanning",
+              },
+              mousemove: "moving",
+            },
+            after: {
+              300: "idle",
+            },
           },
-        },
-        startingPanning: {
-          on: {
-            PAN: "panningInsideWidget",
+          startingPanning: {
+            on: {
+              mousemove: "panningInsideWidget",
+              mouseup: "idle",
+            },
           },
-        },
-        panningInsideWidget: {
-          on: {
-            STOP_PANNING: "rest",
-            LEAVE_WIDGET: "panningOutsideWidget",
-            PAN: "panningInsideWidget",
+          panningInsideWidget: {
+            on: {
+              mouseup: {
+                target: "idle",
+              },
+              mouseleave: "panningOutsideWidget",
+              mousemove: "panningInsideWidget",
+            },
           },
-        },
-        panningOutsideWidget: {
-          on: {
-            STOP_PANNING: "#pan.outsideWidget",
-            ENTER_WIDGET: "panningInsideWidget",
-            PAN: "panningOutsideWidget",
+          panningOutsideWidget: {
+            on: {
+              mouseup: {
+                target: "#pan.outsideWidget",
+              },
+              mouseenter: "panningInsideWidget",
+              mousemove: "panningOutsideWidget",
+            },
           },
         },
       },
     },
   },
-});
+  {
+    guards: {
+      hoverOnWidget: (context, event) => map.matches(":hover"),
+    },
+  }
+);
 
-// Interpret the machine, and add a listener for whenever a transition occurs.
 const panningService = interpret(panningMachine).onTransition((state) => {
   const states = state.toStrings();
   console.log(`\t${states[states.length - 1]}\t\t\t${state.event.type}`);
 });
 
-const map = document.getElementById("map");
-
-let timer;
-let dragging = false;
-
-function mousemoveHandler() {
-  if (!dragging) {
-    panningService.send("MOUSE_MOVE");
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      panningService.send("STOP_MOVING");
-    }, 300);
-  } else {
-    panningService.send("PAN");
-  }
-}
-document.addEventListener("mousemove", mousemoveHandler);
-
-map.addEventListener("mousedown", () => {
-  clearTimeout(timer);
-  dragging = true;
-  panningService.send("START_PANNING");
+map.addEventListener("mousedown", (event) => {
+  panningService.send(event);
 });
 
-document.addEventListener("mouseup", () => {
-  if (dragging) {
-    panningService.send("STOP_PANNING");
-    dragging = false;
-  }
+document.addEventListener("mouseup", (event) => {
+  panningService.send(event);
 });
 
-map.addEventListener("mouseenter", () => {
-  panningService.send("ENTER_WIDGET");
+document.addEventListener("mousemove", (event) => {
+  panningService.send(event);
 });
 
-map.addEventListener("mouseleave", () => {
-  clearTimeout(timer);
-  panningService.send("LEAVE_WIDGET");
+map.addEventListener("mouseenter", (event) => {
+  panningService.send(event);
 });
 
-// Start the service
+map.addEventListener("mouseleave", (event) => {
+  panningService.send(event);
+});
+
 panningService.start();
-
-// Initialize the state chart.
-if (map.matches(":hover")) {
-  panningService.send("ENTER_WIDGET");
-} else {
-  panningService.send("LEAVE_WIDGET");
-}
