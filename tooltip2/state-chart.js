@@ -47,6 +47,15 @@ const tooltipMachine = createMachine(
         entry: "hideTooltip",
         on: {
           mouseenter: "onWidget",
+          mousemove: {
+            // This is needed in case the mouse is moved onto the button
+            // on page load.
+            target: "onWidget",
+            actions: assign({
+              clientX: (context, event) => event.clientX,
+              clientY: (context, event) => event.clientY,
+            }),
+          },
         },
       },
     },
