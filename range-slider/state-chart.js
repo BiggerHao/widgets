@@ -8,12 +8,6 @@ const rangeSliderMachine = createMachine(
   {
     id: "rangeSlider",
     type: "parallel",
-    context: {
-      valueA: 0,
-      valueB: 10,
-      minValue: 0,
-      maxValue: 10,
-    },
     states: {
       handleA: {
         initial: "idle",
@@ -431,25 +425,36 @@ const rangeSliderMachine = createMachine(
   }
 );
 
-const rangeSliderService = interpret(rangeSliderMachine).onTransition(
-  (state) => {
-    const states = state.toStrings();
-    // console.log(`\t${states[states.length - 1]}\t\t\t${state.event.type}`);
-    let stateA = "",
-      stateB = "",
-      stateBar = "";
-    for (const s of states) {
-      if (s.startsWith("handleA")) {
-        stateA = s;
-      } else if (s.startsWith("handleB")) {
-        stateB = s;
-      } else if (s.startsWith("bar")) {
-        stateBar = s;
-      }
-    }
-    console.log(`${stateA}\t\t${stateB}\t\t${stateBar}`);
-  }
+const initialContext = {
+  valueA: parseFloat(slider.noUiSlider.get()[0]),
+  valueB: parseFloat(slider.noUiSlider.get()[1]),
+  minValue: slider.noUiSlider.options.range.min,
+  maxValue: slider.noUiSlider.options.range.max,
+};
+
+const rangeSliderMachineWithContext = rangeSliderMachine.withContext(
+  initialContext
 );
+
+const rangeSliderService = interpret(
+  rangeSliderMachineWithContext
+).onTransition((state) => {
+  const states = state.toStrings();
+  // console.log(`\t${states[states.length - 1]}\t\t\t${state.event.type}`);
+  let stateA = "",
+    stateB = "",
+    stateBar = "";
+  for (const s of states) {
+    if (s.startsWith("handleA")) {
+      stateA = s;
+    } else if (s.startsWith("handleB")) {
+      stateB = s;
+    } else if (s.startsWith("bar")) {
+      stateBar = s;
+    }
+  }
+  console.log(`${stateA}\t\t${stateB}\t\t${stateBar}`);
+});
 
 // Event listeners on handleA.
 handleA.addEventListener("mousedown", (event) => {
