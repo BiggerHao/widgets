@@ -2,79 +2,66 @@ const { createMachine, assign, interpret } = XState;
 
 const map = document.getElementById("map");
 
-const panningMachine = createMachine(
-  {
-    id: "pan",
-    initial: "initialized",
-    states: {
-      initialized: {
-        always: [
-          { target: "onWidget", cond: "hoverOnWidget" },
-          { target: "outsideWidget" },
-        ],
+const panningMachine = createMachine({
+  id: "pan",
+  initial: "outsideWidget",
+  states: {
+    outsideWidget: {
+      on: {
+        mouseenter: "onWidget",
       },
-      outsideWidget: {
-        on: {
-          mouseenter: "onWidget",
+    },
+    onWidget: {
+      initial: "moving",
+      states: {
+        idle: {
+          on: {
+            mousemove: "moving",
+            mousedown: {
+              target: "startingPanning",
+            },
+          },
         },
-      },
-      onWidget: {
-        initial: "moving",
-        states: {
-          idle: {
-            on: {
-              mousemove: "moving",
-              mousedown: {
-                target: "startingPanning",
-              },
+        moving: {
+          on: {
+            mouseleave: "#pan.outsideWidget",
+            mousedown: {
+              target: "startingPanning",
             },
+            mousemove: "moving",
           },
-          moving: {
-            on: {
-              mouseleave: "#pan.outsideWidget",
-              mousedown: {
-                target: "startingPanning",
-              },
-              mousemove: "moving",
-            },
-            after: {
-              300: "idle",
-            },
+          after: {
+            300: "idle",
           },
-          startingPanning: {
-            on: {
-              mousemove: "panningInsideWidget",
-              mouseup: "idle",
-            },
+        },
+        startingPanning: {
+          on: {
+            mousemove: "panningInsideWidget",
+            mouseup: "idle",
           },
-          panningInsideWidget: {
-            on: {
-              mouseup: {
-                target: "idle",
-              },
-              mouseleave: "panningOutsideWidget",
-              mousemove: "panningInsideWidget",
+        },
+        panningInsideWidget: {
+          on: {
+            mouseup: {
+              target: "idle",
             },
+            mouseleave: "panningOutsideWidget",
+            mousemove: "panningInsideWidget",
           },
-          panningOutsideWidget: {
-            on: {
-              mouseup: {
-                target: "#pan.outsideWidget",
-              },
-              mouseenter: "panningInsideWidget",
-              mousemove: "panningOutsideWidget",
+        },
+        panningOutsideWidget: {
+          on: {
+            mouseup: {
+              target: "#pan.outsideWidget",
             },
+            mouseenter: "panningInsideWidget",
+            mousemove: "panningOutsideWidget",
           },
         },
       },
     },
   },
-  {
-    guards: {
-      hoverOnWidget: (context, event) => map.matches(":hover"),
-    },
-  }
-);
+});
 
 const panningService = interpret(panningMachine).onTransition((state) => {
   const states = state.toStrings();
