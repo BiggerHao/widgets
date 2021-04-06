@@ -376,7 +376,7 @@ const rangeSliderMachine = createMachine(
   {
     guards: {
       notOnA: (context, event) => !handleA.matches(":hover"),
-      notOnB: (context, event) => !handleA.matches(":hover"),
+      notOnB: (context, event) => !handleB.matches(":hover"),
       notOnBar: (context, event) => !bar.matches(":hover"),
       progressA: (context, event) =>
         parseFloat(slider.noUiSlider.get()[0]) > context.valueA,
