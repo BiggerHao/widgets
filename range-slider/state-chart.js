@@ -33,12 +33,10 @@ const rangeSliderMachine = createMachine(
                 {
                   target: "moving.progressing",
                   cond: "progressA",
-                  actions: "updateValues",
                 },
                 {
                   target: "moving.regressing",
                   cond: "regressA",
-                  actions: "updateValues",
                 },
               ],
               mouseup: [
@@ -52,27 +50,18 @@ const rangeSliderMachine = createMachine(
             ],
           },
           moving: {
+            entry: "updateValues",
             on: {
               mousemove: [
                 {
-                  target: "movingExtreme.min",
-                  cond: "minA",
-                  actions: "updateValues",
-                },
-                {
-                  target: "movingExtreme.max",
-                  cond: "maxA",
-                  actions: "updateValues",
-                },
-                {
                   target: ".progressing",
                   cond: "progressA",
-                  actions: "updateValues",
+                  internal: false,
                 },
                 {
                   target: ".regressing",
                   cond: "regressA",
-                  actions: "updateValues",
+                  internal: false,
                 },
               ],
               mouseup: [
@@ -80,6 +69,16 @@ const rangeSliderMachine = createMachine(
                 { target: "hovering" },
               ],
             },
+            always: [
+              {
+                target: "movingExtreme.min",
+                cond: "minA",
+              },
+              {
+                target: "movingExtreme.max",
+                cond: "maxA",
+              },
+            ],
             states: {
               progressing: {},
               regressing: {},
@@ -98,7 +97,6 @@ const rangeSliderMachine = createMachine(
                   mousemove: {
                     target: "#rangeSlider.handleA.moving.progressing",
                     cond: "progressA",
-                    actions: "updateValues",
                   },
                 },
               },
@@ -107,7 +105,6 @@ const rangeSliderMachine = createMachine(
                   mousemove: {
                     target: "#rangeSlider.handleA.moving.regressing",
                     cond: "regressA",
-                    actions: "updateValues",
                   },
                 },
               },
@@ -154,12 +151,10 @@ const rangeSliderMachine = createMachine(
                 {
                   target: "moving.progressing",
                   cond: "progressB",
-                  actions: "updateValues",
                 },
                 {
                   target: "moving.regressing",
                   cond: "regressB",
-                  actions: "updateValues",
                 },
               ],
               mouseup: [
@@ -173,27 +168,18 @@ const rangeSliderMachine = createMachine(
             ],
           },
           moving: {
+            entry: "updateValues",
             on: {
               mousemove: [
                 {
-                  target: "movingExtreme.min",
-                  cond: "minB",
-                  actions: "updateValues",
-                },
-                {
-                  target: "movingExtreme.max",
-                  cond: "maxB",
-                  actions: "updateValues",
-                },
-                {
                   target: ".progressing",
                   cond: "progressB",
-                  actions: "updateValues",
+                  internal: false,
                 },
                 {
                   target: ".regressing",
                   cond: "regressB",
-                  actions: "updateValues",
+                  internal: false,
                 },
               ],
               mouseup: [
@@ -201,6 +187,16 @@ const rangeSliderMachine = createMachine(
                 { target: "hovering" },
               ],
             },
+            always: [
+              {
+                target: "movingExtreme.min",
+                cond: "minB",
+              },
+              {
+                target: "movingExtreme.max",
+                cond: "maxB",
+              },
+            ],
             states: {
               progressing: {},
               regressing: {},
@@ -219,7 +215,6 @@ const rangeSliderMachine = createMachine(
                   mousemove: {
                     target: "#rangeSlider.handleB.moving.progressing",
                     cond: "progressB",
-                    actions: "updateValues",
                   },
                 },
               },
@@ -228,7 +223,6 @@ const rangeSliderMachine = createMachine(
                   mousemove: {
                     target: "#rangeSlider.handleB.moving.regressing",
                     cond: "regressB",
-                    actions: "updateValues",
                   },
                 },
               },
@@ -276,12 +270,10 @@ const rangeSliderMachine = createMachine(
                 {
                   target: "moving.progressing",
                   cond: "progressA", // This condition is enough.
-                  actions: "updateValues",
                 },
                 {
                   target: "moving.regressing",
                   cond: "regressA", // This condition is enough.
-                  actions: "updateValues",
                 },
               ],
               mouseup: [
@@ -295,27 +287,18 @@ const rangeSliderMachine = createMachine(
             ],
           },
           moving: {
+            entry: "updateValues",
             on: {
               mousemove: [
                 {
-                  target: "movingExtreme.min",
-                  cond: "minBar",
-                  actions: "updateValues",
-                },
-                {
-                  target: "movingExtreme.max",
-                  cond: "maxBar",
-                  actions: "updateValues",
-                },
-                {
                   target: ".progressing",
                   cond: "progressA", // This condition is enough.
-                  actions: "updateValues",
+                  internal: false,
                 },
                 {
                   target: ".regressing",
                   cond: "regressA", // This condition is enough.
-                  actions: "updateValues",
+                  internal: false,
                 },
               ],
               mouseup: [
@@ -323,6 +306,16 @@ const rangeSliderMachine = createMachine(
                 { target: "hovering" },
               ],
             },
+            always: [
+              {
+                target: "movingExtreme.min",
+                cond: "minBar",
+              },
+              {
+                target: "movingExtreme.max",
+                cond: "maxBar",
+              },
+            ],
             states: {
               progressing: {},
               regressing: {},
@@ -341,7 +334,6 @@ const rangeSliderMachine = createMachine(
                   mousemove: {
                     target: "#rangeSlider.bar.moving.progressing",
                     cond: "progressA", // This condition is enough.
-                    actions: "updateValues",
                   },
                 },
               },
@@ -350,7 +342,6 @@ const rangeSliderMachine = createMachine(
                   mousemove: {
                     target: "#rangeSlider.bar.moving.regressing",
                     cond: "regressA", // This condition is enough.
-                    actions: "updateValues",
                   },
                 },
               },
@@ -395,32 +386,27 @@ const rangeSliderMachine = createMachine(
         parseFloat(slider.noUiSlider.get()[1]) > context.valueB,
       regressB: (context, event) =>
         parseFloat(slider.noUiSlider.get()[1]) < context.valueB,
-      minA: (context, event) =>
-        parseFloat(slider.noUiSlider.get()[0]) == context.minValue,
-      maxA: (context, event) =>
-        parseFloat(slider.noUiSlider.get()[0]) == context.maxValue,
-      minB: (context, event) =>
-        parseFloat(slider.noUiSlider.get()[1]) == context.minValue,
-      maxB: (context, event) =>
-        parseFloat(slider.noUiSlider.get()[1]) == context.maxValue,
+      minA: (context, event) => context.valueA == context.minValue,
+      maxA: (context, event) => context.valueA == context.maxValue,
+      minB: (context, event) => context.valueB == context.minValue,
+      maxB: (context, event) => context.valueB == context.maxValue,
       minBar: (context, event) =>
-        parseFloat(slider.noUiSlider.get()[0]) == context.minValue ||
-        parseFloat(slider.noUiSlider.get()[1]) == context.minValue,
+        context.valueA == context.minValue ||
+        context.valueB == context.minValue,
       maxBar: (context, event) =>
-        parseFloat(slider.noUiSlider.get()[0]) == context.maxValue ||
-        parseFloat(slider.noUiSlider.get()[1]) == context.maxValue,
+        context.valueA == context.maxValue ||
+        context.valueB == context.maxValue,
       minMaxBar: (context, event) =>
-        (parseFloat(slider.noUiSlider.get()[0]) == context.minValue &&
-          parseFloat(slider.noUiSlider.get()[1]) == context.maxValue) ||
-        (parseFloat(slider.noUiSlider.get()[0]) == context.maxValue &&
-          parseFloat(slider.noUiSlider.get()[1]) == context.minValue),
+        (context.valueA == context.minValue &&
+          context.valueB == context.maxValue) ||
+        (context.valueA == context.maxValue &&
+          context.valueB == context.minValue),
     },
     actions: {
-      updateValues: (context, event) => {
-        context.valueA = parseFloat(slider.noUiSlider.get()[0]);
-        context.valueB = parseFloat(slider.noUiSlider.get()[1]);
-        // console.log(context.valueA, context.valueB)
-      },
+      updateValues: assign({
+        valueA: (context, event) => parseFloat(slider.noUiSlider.get()[0]),
+        valueB: (context, event) => parseFloat(slider.noUiSlider.get()[1]),
+      }),
     },
   }
 );
