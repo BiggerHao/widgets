@@ -21,16 +21,17 @@ const hoveringMachine = createMachine({
 });
 
 const hoveringService = interpret(hoveringMachine).onTransition((state) => {
-  const states = state.toStrings();
-  console.log(`\t${states[states.length - 1]}\t\t\t${state.event.type}`);
+	const states = state.toStrings();
+	console.log(`\t${states[states.length - 1]}\t\t\t${state.event.type}`);
 });
 
 button.addEventListener("mouseover", (event) => {
-  hoveringService.send(event);
+	 helper.innerHTML = Date();
+	hoveringService.send(event);
 });
 
 button.addEventListener("mouseout", (event) => {
-  hoveringService.send(event);
+	hoveringService.send(event);
 });
 
 
