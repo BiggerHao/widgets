@@ -40,10 +40,7 @@ const rangeSliderMachine = createMachine(
                   cond: "regressA",
                 },
               ],
-              mouseup: [
-                { target: "hovering", cond: "onA" },
-                { target: "idle" },
-              ],
+              mouseup: "idle",
             },
             always: [
               { target: "movingExtreme.min", cond: "minA" },
@@ -65,10 +62,7 @@ const rangeSliderMachine = createMachine(
                   internal: false,
                 },
               ],
-              mouseup: [
-                { target: "hovering", cond: "onA" },
-                { target: "idle" },
-              ],
+              mouseup: "idle",
             },
             always: [
               {
@@ -87,10 +81,7 @@ const rangeSliderMachine = createMachine(
           },
           movingExtreme: {
             on: {
-              mouseup: [
-                { target: "hovering", cond: "onA" },
-                { target: "idle" },
-              ],
+              mouseup: "idle",
             },
             states: {
               min: {
@@ -159,10 +150,7 @@ const rangeSliderMachine = createMachine(
                   cond: "regressB",
                 },
               ],
-              mouseup: [
-                { target: "hovering", cond: "onB" },
-                { target: "idle" },
-              ],
+              mouseup: "idle",
             },
             always: [
               { target: "movingExtreme.min", cond: "minB" },
@@ -184,10 +172,7 @@ const rangeSliderMachine = createMachine(
                   internal: false,
                 },
               ],
-              mouseup: [
-                { target: "hovering", cond: "onB" },
-                { target: "idle" },
-              ],
+              mouseup: "idle",
             },
             always: [
               {
@@ -206,10 +191,7 @@ const rangeSliderMachine = createMachine(
           },
           movingExtreme: {
             on: {
-              mouseup: [
-                { target: "hovering", cond: "onB" },
-                { target: "idle" },
-              ],
+              mouseup: "idle",
             },
             states: {
               min: {
@@ -279,10 +261,7 @@ const rangeSliderMachine = createMachine(
                   cond: "regressA", // This condition is enough.
                 },
               ],
-              mouseup: [
-                { target: "hovering", cond: "onBar" },
-                { target: "idle" },
-              ],
+              mouseup: "idle",
             },
             always: [
               { target: "movingExtreme.min", cond: "minBar" },
@@ -304,10 +283,7 @@ const rangeSliderMachine = createMachine(
                   internal: false,
                 },
               ],
-              mouseup: [
-                { target: "hovering", cond: "onBar" },
-                { target: "idle" },
-              ],
+              mouseup: "idle",
             },
             always: [
               {
@@ -326,10 +302,7 @@ const rangeSliderMachine = createMachine(
           },
           movingExtreme: {
             on: {
-              mouseup: [
-                { target: "hovering", cond: "onBar" },
-                { target: "idle" },
-              ],
+              mouseup: "idle",
             },
             states: {
               min: {
