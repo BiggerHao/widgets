@@ -17,6 +17,7 @@ const rangeSliderMachine = createMachine(
               mouseenterA: "hovering",
             },
             always: [
+              { target: "hovering", cond: "onA" },
               { target: "extreme.min", cond: "minA" },
               { target: "extreme.max", cond: "maxA" },
             ],
@@ -40,8 +41,8 @@ const rangeSliderMachine = createMachine(
                 },
               ],
               mouseup: [
-                { target: "idle", cond: "notOnA" },
-                { target: "hovering" },
+                { target: "hovering", cond: "onA" },
+                { target: "idle" },
               ],
             },
             always: [
@@ -65,8 +66,8 @@ const rangeSliderMachine = createMachine(
                 },
               ],
               mouseup: [
-                { target: "idle", cond: "notOnA" },
-                { target: "hovering" },
+                { target: "hovering", cond: "onA" },
+                { target: "idle" },
               ],
             },
             always: [
@@ -87,8 +88,8 @@ const rangeSliderMachine = createMachine(
           movingExtreme: {
             on: {
               mouseup: [
-                { target: "idle", cond: "notOnA" },
-                { target: "hovering" },
+                { target: "hovering", cond: "onA" },
+                { target: "idle" },
               ],
             },
             states: {
@@ -135,6 +136,7 @@ const rangeSliderMachine = createMachine(
               mouseenterB: "hovering",
             },
             always: [
+              { target: "hovering", cond: "onB" },
               { target: "extreme.min", cond: "minB" },
               { target: "extreme.max", cond: "maxB" },
             ],
@@ -158,8 +160,8 @@ const rangeSliderMachine = createMachine(
                 },
               ],
               mouseup: [
-                { target: "idle", cond: "notOnB" },
-                { target: "hovering" },
+                { target: "hovering", cond: "onB" },
+                { target: "idle" },
               ],
             },
             always: [
@@ -183,8 +185,8 @@ const rangeSliderMachine = createMachine(
                 },
               ],
               mouseup: [
-                { target: "idle", cond: "notOnB" },
-                { target: "hovering" },
+                { target: "hovering", cond: "onB" },
+                { target: "idle" },
               ],
             },
             always: [
@@ -205,8 +207,8 @@ const rangeSliderMachine = createMachine(
           movingExtreme: {
             on: {
               mouseup: [
-                { target: "idle", cond: "notOnB" },
-                { target: "hovering" },
+                { target: "hovering", cond: "onB" },
+                { target: "idle" },
               ],
             },
             states: {
@@ -253,6 +255,7 @@ const rangeSliderMachine = createMachine(
               mouseenterBar: "hovering",
             },
             always: [
+              { target: "hovering", cond: "onBar" },
               { target: "minMax", cond: "minMaxBar" },
               { target: "extreme.min", cond: "minBar" },
               { target: "extreme.max", cond: "maxBar" },
@@ -277,8 +280,8 @@ const rangeSliderMachine = createMachine(
                 },
               ],
               mouseup: [
-                { target: "idle", cond: "notOnBar" },
-                { target: "hovering" },
+                { target: "hovering", cond: "onBar" },
+                { target: "idle" },
               ],
             },
             always: [
@@ -302,8 +305,8 @@ const rangeSliderMachine = createMachine(
                 },
               ],
               mouseup: [
-                { target: "idle", cond: "notOnBar" },
-                { target: "hovering" },
+                { target: "hovering", cond: "onBar" },
+                { target: "idle" },
               ],
             },
             always: [
@@ -324,8 +327,8 @@ const rangeSliderMachine = createMachine(
           movingExtreme: {
             on: {
               mouseup: [
-                { target: "idle", cond: "notOnBar" },
-                { target: "hovering" },
+                { target: "hovering", cond: "onBar" },
+                { target: "idle" },
               ],
             },
             states: {
@@ -375,9 +378,9 @@ const rangeSliderMachine = createMachine(
   },
   {
     guards: {
-      notOnA: (context, event) => !handleA.matches(":hover"),
-      notOnB: (context, event) => !handleB.matches(":hover"),
-      notOnBar: (context, event) => !bar.matches(":hover"),
+      onA: (context, event) => handleA.matches(":hover"),
+      onB: (context, event) => handleB.matches(":hover"),
+      onBar: (context, event) => bar.matches(":hover"),
       progressA: (context, event) =>
         parseFloat(slider.noUiSlider.get()[0]) > context.valueA,
       regressA: (context, event) =>
