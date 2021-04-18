@@ -1,0 +1,36 @@
+@import "./base";
+
+div#instructions {
+  width: 800px;
+}
+
+#app {
+  #count {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  #arrival {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  #departure {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  #distance {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  #airtime {
+    grid-column: 1;
+    grid-row: 3;
+  }
+  #dep_delay {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  #arr_delay {
+    grid-column: 3;
+    grid-row: 2;
+  }
+}
