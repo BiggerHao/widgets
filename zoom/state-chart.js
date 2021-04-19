@@ -1,13 +1,18 @@
-const { createMachine, interpret } = XState;
+const { createMachine, assign, interpret } = XState;
 
 const helper = document.getElementById("helper");
 const button = document.getElementsByTagName("button")[0];
+
+button.style.transform = "scale(1)";
+
+const updateValue = context => button.style.transform;
+
 //define the fsa
 const zoomMachine = createMachine({
 	id: "zoom",
 	initial: "idle",
-	context: {
-		zoompercentage: 1,
+	context:{
+		zoomValue: button.style.transform
 	},
 	states: {
 		idle: {
@@ -22,19 +27,22 @@ const zoomMachine = createMachine({
 			},
 		},
 		zoom: {
-			//STILL NEED TO UPDATE THE VALUE AND THE TRANSITION FROM ZOOM TO 
-			// HOVERING IS NOT LOGGED
-			always: [
-				{target: "hovering"} 
-			]
+			on: {
+				UPDATE: { actions: assign({ zoomValue: updateValue }) },
+				DONE: "hovering",
+			},
 		},
 	},
 });
+
 //link the FSA to a service
-const zoomService = interpret(zoomMachine).onTransition((state) => {
-	const states = state.toStrings();
-	console.log(`\t${states[states.length - 1]}\t\t\t${state.event.type}`);
-});
+const zoomService = interpret(zoomMachine)
+	.onTransition((state) => {
+		const states = state.toStrings();
+		state.context.zoomValue == button.style.transform;
+		console.log(`\t${states[0]}\t\t\t${state.event.type}\t\t\t` + state.context.zoomValue);
+	});
+	
 //mouseover eventlistener
 button.addEventListener("mouseover", (event) => {
 	zoomService.send(event);
@@ -51,6 +59,8 @@ button.addEventListener("wheel", (event) => {
 	// Apply scale transform
 	button.style.transform = `scale(${scale})`;
 	zoomService.send(event);
+	zoomService.send("UPDATE");
+	zoomService.send("DONE");
 });
 
 let scale = 1;
