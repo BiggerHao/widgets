@@ -8,5 +8,4 @@
 
 ## Known issues
 
-1. The state chart currently only supports one view in the interface.
-2. Explicit and implicit brush deletions are not supported.
+1. Explicit and implicit brush deletions are not supported.

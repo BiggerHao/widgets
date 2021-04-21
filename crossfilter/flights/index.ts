@@ -1,8 +1,8 @@
 import { App, ArrowDB, Views } from "falcon-vis";
 import { config } from "../config";
 import { EmptyLogger } from "./empty-logger";
-import { rangeSliderMachine } from "./crossfilter-machine";
-import { interpret } from "xstate";
+import { crossfilterMachine } from "./crossfilter-machine";
+import { interpret, mapState } from "xstate";
 
 document.getElementById("app")!.innerText = "";
 
@@ -61,50 +61,50 @@ views.set("ARR_TIME", {
     format: ".1f",
   },
 });
-views.set("DEP_TIME", {
-  title: "Departure Time",
-  type: "1D",
-  el: createElement("departure"),
-  dimension: {
-    name: "DEP_TIME",
-    bins: 24,
-    extent: [0, 24],
-    format: ".1f",
-  },
-});
-views.set("DEP_DELAY", {
-  title: "Departure Delay in Minutes",
-  type: "1D",
-  el: createElement("dep_delay"),
-  dimension: {
-    name: "DEP_DELAY",
-    bins: 25,
-    extent: [-20, 60],
-    format: ".1f",
-  },
-});
-views.set("ARR_DELAY", {
-  title: "Arrival Delay in Minutes",
-  type: "1D",
-  el: createElement("arr_delay"),
-  dimension: {
-    name: "ARR_DELAY",
-    bins: 25,
-    extent: [-20, 60],
-    format: ".1f",
-  },
-});
-views.set("AIR_TIME", {
-  title: "Airtime in Minutes",
-  type: "1D",
-  el: createElement("airtime"),
-  dimension: {
-    name: "AIR_TIME",
-    bins: 25,
-    extent: [0, 500],
-    format: "d",
-  },
-});
+// views.set("DEP_TIME", {
+//   title: "Departure Time",
+//   type: "1D",
+//   el: createElement("departure"),
+//   dimension: {
+//     name: "DEP_TIME",
+//     bins: 24,
+//     extent: [0, 24],
+//     format: ".1f",
+//   },
+// });
+// views.set("DEP_DELAY", {
+//   title: "Departure Delay in Minutes",
+//   type: "1D",
+//   el: createElement("dep_delay"),
+//   dimension: {
+//     name: "DEP_DELAY",
+//     bins: 25,
+//     extent: [-20, 60],
+//     format: ".1f",
+//   },
+// });
+// views.set("ARR_DELAY", {
+//   title: "Arrival Delay in Minutes",
+//   type: "1D",
+//   el: createElement("arr_delay"),
+//   dimension: {
+//     name: "ARR_DELAY",
+//     bins: 25,
+//     extent: [-20, 60],
+//     format: ".1f",
+//   },
+// });
+// views.set("AIR_TIME", {
+//   title: "Airtime in Minutes",
+//   type: "1D",
+//   el: createElement("airtime"),
+//   dimension: {
+//     name: "AIR_TIME",
+//     bins: 25,
+//     extent: [0, 500],
+//     format: "d",
+//   },
+// });
 
 const url = require("url:./flights-10k.arrow");
 // const url =
@@ -119,35 +119,66 @@ new App(views, db, {
   cb: (_app) => {
     document.getElementById("loading")!.style.display = "none";
 
-    const distance_view = _app.getVegaView("DISTANCE");
-    console.log(distance_view);
+    const viewNames = ["DISTANCE", "ARR_TIME"];
+    const elementIds = {
+      DISTANCE: "distance",
+      ARR_TIME: "arrival",
+    };
+    const eventNameSuffixes = {
+      DISTANCE: "Distance",
+      ARR_TIME: "ArrTime",
+    };
+    const view = getViews(_app, viewNames);
+    const brushExists = new Map();
+    const widget = new Map();
+    const chartBackground = new Map();
+    const handleA = new Map();
+    const handleB = new Map();
+    const bar = new Map();
+    const valueA = new Map();
+    const valueB = new Map();
+    const minValue = new Map();
+    const maxValue = new Map();
+
+    for (const viewName of viewNames) {
+      brushExists.set(viewName, false);
+      valueA.set(viewName, 0);
+      valueB.set(viewName, 0);
+    }
+
+    getWidgetComponents(
+      elementIds,
+      widget,
+      chartBackground,
+      handleA,
+      handleB,
+      bar
+    );
+
+    getSliderRange(view, minValue, maxValue);
+
     const initialContext = {
-      view: distance_view,
-      brushExists: false,
-      handleA: [
-        document.querySelector("#distance .left_grabber"),
-        document.querySelector("#distance .left"),
-      ],
-      handleB: [
-        document.querySelector("#distance .right_grabber"),
-        document.querySelector("#distance .right"),
-      ],
-      bar: document.querySelector("#distance .brush"),
-      valueA: 0,
-      valueB: 0,
-      minValue: distance_view.signal("bin")["start"],
-      maxValue: distance_view.signal("bin")["stop"],
+      view: view,
+      activeViewName: null,
+      brushExists: brushExists,
+      handleA: handleA,
+      handleB: handleB,
+      bar: bar,
+      valueA: valueA,
+      valueB: valueB,
+      minValue: minValue,
+      maxValue: maxValue,
     };
 
-    const rangeSliderMachineWithContext = rangeSliderMachine.withContext(
+    const crossfilterMachineWithContext = crossfilterMachine.withContext(
       initialContext
     );
 
-    const rangeSliderService = interpret(
-      rangeSliderMachineWithContext
+    const crossfilterService = interpret(
+      crossfilterMachineWithContext
     ).onTransition((state) => {
       const states = state.toStrings();
-      if (states.length <= 3) {
+      if (states.length <= 4) {
         console.log(`${states[states.length - 1]}`);
       } else {
         let stateA = "",
@@ -166,94 +197,156 @@ new App(views, db, {
       }
     });
 
-    const widget = document.querySelector("#distance");
-    const chart_background = document.querySelector(
-      "#distance .chart .background"
+    registerEventListeners(
+      crossfilterService,
+      eventNameSuffixes,
+      widget,
+      chartBackground,
+      handleA,
+      handleB,
+      bar
     );
-    const handleA = [
-      document.querySelector("#distance .left_grabber"),
-      document.querySelector("#distance .left"),
-    ];
-    const handleB = [
-      document.querySelector("#distance .right_grabber"),
-      document.querySelector("#distance .right"),
-    ];
-    const bar = document.querySelector("#distance .brush");
 
-    // Event listeners on widget.
-    widget.addEventListener("mouseenter", () => {
-      rangeSliderService.send("mouseenterWidget");
-    });
-
-    widget.addEventListener("mouseleave", () => {
-      rangeSliderService.send("mouseleaveWidget");
-    });
-
-    // Event listeners on chart background.
-    chart_background.addEventListener("mousedown", () => {
-      rangeSliderService.send("mousedownChart");
-    });
-
-    // Event listeners on handleA.
-    handleA.forEach(function (elem) {
-      elem.addEventListener("mousedown", (event) => {
-        rangeSliderService.send("mousedownA");
-      });
-    });
-
-    handleA.forEach(function (elem) {
-      elem.addEventListener("mouseenter", (event) => {
-        rangeSliderService.send("mouseenterA");
-      });
-    });
-
-    handleA.forEach(function (elem) {
-      elem.addEventListener("mouseleave", (event) => {
-        rangeSliderService.send("mouseleaveA");
-      });
-    });
-
-    // Event listeners on handleB.
-    handleB.forEach(function (elem) {
-      elem.addEventListener("mousedown", (event) => {
-        rangeSliderService.send("mousedownB");
-      });
-    });
-
-    handleB.forEach(function (elem) {
-      elem.addEventListener("mouseenter", (event) => {
-        rangeSliderService.send("mouseenterB");
-      });
-    });
-
-    handleB.forEach(function (elem) {
-      elem.addEventListener("mouseleave", (event) => {
-        rangeSliderService.send("mouseleaveB");
-      });
-    });
-
-    // Event listeners on bar.
-    bar.addEventListener("mousedown", (event) => {
-      rangeSliderService.send("mousedownBar");
-    });
-
-    bar.addEventListener("mouseenter", (event) => {
-      rangeSliderService.send("mouseenterBar");
-    });
-
-    bar.addEventListener("mouseleave", (event) => {
-      rangeSliderService.send("mouseleaveBar");
-    });
-
-    // Event listeners on document.
-    document.addEventListener("mouseup", (event) => {
-      rangeSliderService.send(event);
-    });
-
-    document.addEventListener("mousemove", (event) => {
-      rangeSliderService.send(event);
-    });
-
-    rangeSliderService.start();
+    crossfilterService.start();
   },
 });
+
+function getViews(app, viewNames) {
+  const view = new Map();
+  viewNames.forEach((viewName) => {
+    view.set(viewName, app.getVegaView(viewName));
+  });
+  return view;
+}
+
+function getWidgetComponents(
+  elementIds,
+  widget,
+  chartBackground,
+  handleA,
+  handleB,
+  bar
+) {
+  for (const viewName in elementIds) {
+    const elementId = elementIds[viewName];
+
+    widget.set(viewName, document.querySelector(`#${elementId}`));
+
+    chartBackground.set(
+      viewName,
+      document.querySelector(`#${elementId} .chart .background`)
+    );
+
+    const handleAComponents = [
+      document.querySelector(`#${elementId} .left_grabber`),
+      document.querySelector(`#${elementId} .left`),
+    ];
+    handleA.set(viewName, handleAComponents);
+
+    const handleBComponents = [
+      document.querySelector(`#${elementId} .right_grabber`),
+      document.querySelector(`#${elementId} .right`),
+    ];
+    handleB.set(viewName, handleBComponents);
+
+    bar.set(viewName, document.querySelector(`#${elementId} .brush`));
+  }
+}
+
+function getSliderRange(view, minValue, maxValue) {
+  for (const [viewName, singleView] of view.entries()) {
+    minValue.set(viewName, singleView.signal("bin")["start"]);
+    maxValue.set(viewName, singleView.signal("bin")["stop"]);
+  }
+}
+
+function registerEventListeners(
+  crossfilterService,
+  eventNameSuffixes,
+  widget,
+  chartBackground,
+  handleA,
+  handleB,
+  bar
+) {
+  // Event listeners on widget.
+  for (const [viewName, singleWidget] of widget.entries()) {
+    const eventNameSuffix = eventNameSuffixes[viewName];
+
+    singleWidget.addEventListener("mouseenter", () => {
+      crossfilterService.send({
+        type: `mouseenter${eventNameSuffix}`,
+        viewName: viewName,
+      });
+    });
+    singleWidget.addEventListener("mouseleave", () => {
+      crossfilterService.send("mouseleaveWidget");
+    });
+  }
+
+  // Event listeners on chart background.
+  for (const [viewName, singleChartBackground] of chartBackground.entries()) {
+    singleChartBackground.addEventListener("mousedown", () => {
+      crossfilterService.send("mousedownChart");
+    });
+  }
+
+  // Event listeners on handleA.
+  for (const [viewName, singleHandleA] of handleA.entries()) {
+    singleHandleA.forEach(function (element) {
+      element.addEventListener("mousedown", (event) => {
+        crossfilterService.send("mousedownA");
+      });
+    });
+    singleHandleA.forEach(function (element) {
+      element.addEventListener("mouseenter", (event) => {
+        crossfilterService.send("mouseenterA");
+      });
+    });
+    singleHandleA.forEach(function (element) {
+      element.addEventListener("mouseleave", (event) => {
+        crossfilterService.send("mouseleaveA");
+      });
+    });
+  }
+
+  // Event listeners on handleB.
+  for (const [viewName, singleHandleB] of handleB.entries()) {
+    singleHandleB.forEach(function (element) {
+      element.addEventListener("mousedown", (event) => {
+        crossfilterService.send("mousedownB");
+      });
+    });
+    singleHandleB.forEach(function (element) {
+      element.addEventListener("mouseenter", (event) => {
+        crossfilterService.send("mouseenterB");
+      });
+    });
+    singleHandleB.forEach(function (element) {
+      element.addEventListener("mouseleave", (event) => {
+        crossfilterService.send("mouseleaveB");
+      });
+    });
+  }
+
+  // Event listeners on bar.
+  for (const [viewName, singleBar] of bar.entries()) {
+    singleBar.addEventListener("mousedown", (event) => {
+      crossfilterService.send("mousedownBar");
+    });
+    singleBar.addEventListener("mouseenter", (event) => {
+      crossfilterService.send("mouseenterBar");
+    });
+    singleBar.addEventListener("mouseleave", (event) => {
+      crossfilterService.send("mouseleaveBar");
+    });
+  }
+
+  // Event listeners on document.
+  document.addEventListener("mouseup", (event) => {
+    crossfilterService.send(event);
+  });
+  document.addEventListener("mousemove", (event) => {
+    crossfilterService.send(event);
+  });
+}
