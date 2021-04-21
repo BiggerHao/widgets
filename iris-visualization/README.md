@@ -15,7 +15,7 @@ An online version of the visualization has been deployed on [Github Pages](https
 
 ## Documentation
 
-A brief document describing the visualization is available [here](https://docs.google.com/document/d/1sk7hTEFk8jqbt0vfpPgmUH7FNPCHhnhhhxxyu7X7CNM/edit?usp=sharing).
+A brief document describing the visualization is available [here](https://github.com/BiggerHao/widgets/blob/main/iris-visualization/documentation.pdf).
 
 ## Authors
 Main repository of the visualization can ben found [here](https://github.com/GiovFiordeponti/D3_XState_Playground). The application is built from a template realized by the [Sapienza Aware Group](https://github.com/aware-diag-sapienza/va-template/).
