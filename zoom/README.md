@@ -2,9 +2,11 @@
 
 Very simple zoom model, with its html/javascript/xstate implementation.
 
-## ToDo
+## Limitations
 
-It works fine; it has a data model that is updated correctly, but the transition back to "hovering" after a zoom is not eventless as in the model.
+XState has a limitation that is clearly pointed out by this example: eventless transitions (expressed with the keyword "always" in the machine's jason) are not triggering onTransition, thus are not logged.
+To overcome this issues, I implemented an event-triggered transition to go exit the "zoom" state while triggering the logging operations, even if this is not ideal.
+
 
 ### How to use
 
