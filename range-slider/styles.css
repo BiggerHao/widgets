@@ -1,0 +1,12 @@
+.slider-container {
+  width: 400px;
+  margin: 80px;
+}
+
+.noUi-handle-lower .noUi-tooltip {
+  background-color: #e1bee7;
+}
+
+.noUi-handle-upper .noUi-tooltip {
+  background-color: #bbdefb;
+}
