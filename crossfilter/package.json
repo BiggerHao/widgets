@@ -5,7 +5,9 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "start:flights": "parcel flights/index.html"
+    "start:flights": "parcel flights/index.html",
+    "build:flights": "rm -rf dist && parcel build --public-url '/widgets/crossfilter/' flights/index.html",
+    "deploy:flights": "gh-pages -d dist -e crossfilter"
   },
   "dependencies": {
     "falcon-vis": "^0.16.0",
@@ -13,6 +15,10 @@
   },
   "devDependencies": {
     "@parcel/transformer-sass": "2.0.0-beta.2",
+    "gh-pages": "^3.1.0",
     "parcel": "^2.0.0-beta.2"
+  },
+  "resolutions": {
+    "@mapd/connector": "5.1.0"
   }
 }
