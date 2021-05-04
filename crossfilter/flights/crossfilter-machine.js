@@ -106,6 +106,10 @@ export const crossfilterMachine = createMachine(
         brushExists: (context, event) =>
           context.brushExists.set(context.activeViewName, true),
       }),
+      resetBrushExists: assign({
+        brushExists: (context, event) =>
+          context.brushExists.set(context.activeViewName, false),
+      }),
       updateValues: assign({
         valueA: (context, event) =>
           context.valueA.set(
@@ -117,6 +121,12 @@ export const crossfilterMachine = createMachine(
             context.activeViewName,
             context.view.get(context.activeViewName).signal("brush")[1]
           ),
+      }),
+      resetValues: assign({
+        valueA: (context, event) =>
+          context.valueA.set(context.activeViewName, 0),
+        valueB: (context, event) =>
+          context.valueB.set(context.activeViewName, 0),
       }),
     },
   }

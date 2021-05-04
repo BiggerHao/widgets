@@ -132,6 +132,7 @@ new App(views, db, {
     const brushExists = new Map();
     const widget = new Map();
     const chartBackground = new Map();
+    const reset = new Map();
     const handleA = new Map();
     const handleB = new Map();
     const bar = new Map();
@@ -150,6 +151,7 @@ new App(views, db, {
       elementIds,
       widget,
       chartBackground,
+      reset,
       handleA,
       handleB,
       bar
@@ -202,6 +204,7 @@ new App(views, db, {
       eventNameSuffixes,
       widget,
       chartBackground,
+      reset,
       handleA,
       handleB,
       bar
@@ -223,6 +226,7 @@ function getWidgetComponents(
   elementIds,
   widget,
   chartBackground,
+  reset,
   handleA,
   handleB,
   bar
@@ -236,6 +240,8 @@ function getWidgetComponents(
       viewName,
       document.querySelector(`#${elementId} .chart .background`)
     );
+
+    reset.set(viewName, document.querySelector(`#${elementId} .reset`));
 
     const handleAComponents = [
       document.querySelector(`#${elementId} .left_grabber`),
@@ -265,6 +271,7 @@ function registerEventListeners(
   eventNameSuffixes,
   widget,
   chartBackground,
+  reset,
   handleA,
   handleB,
   bar
@@ -288,6 +295,13 @@ function registerEventListeners(
   for (const [viewName, singleChartBackground] of chartBackground.entries()) {
     singleChartBackground.addEventListener("mousedown", () => {
       crossfilterService.send("mousedownChart");
+    });
+  }
+
+  // Event listeners on reset button.
+  for (const [viewName, singleReset] of reset.entries()) {
+    singleReset.addEventListener("click", () => {
+      crossfilterService.send("clickReset");
     });
   }
 

@@ -24,7 +24,10 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
       hasBrush: {
         type: "parallel",
         on: {
-          clickReset: "noBrush",
+          clickReset: {
+            target: "noBrush",
+            actions: ["resetBrushExists", "resetValues"],
+          },
         },
         states: {
           handleA: {
