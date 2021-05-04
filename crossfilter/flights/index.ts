@@ -179,23 +179,8 @@ new App(views, db, {
     const crossfilterService = interpret(
       crossfilterMachineWithContext
     ).onTransition((state) => {
-      const states = state.toStrings();
-      if (states.length <= 4) {
-        console.log(`${states[states.length - 1]}`);
-      } else {
-        let stateA = "",
-          stateB = "",
-          stateBar = "";
-        for (const s of states) {
-          if (s.includes("handleA")) {
-            stateA = s;
-          } else if (s.includes("handleB")) {
-            stateB = s;
-          } else if (s.includes("bar")) {
-            stateBar = s;
-          }
-        }
-        console.log(`${stateA}\t\t${stateB}\t\t${stateBar}`);
+      if (state.changed) {
+        printStateStatus(state);
       }
     });
 
@@ -364,3 +349,43 @@ function registerEventListeners(
     crossfilterService.send(event);
   });
 }
+
+const currentState = document.getElementById("currentState");
+const lastTransition = document.getElementById("lastTransition");
+const lastData = document.getElementById("lastData");
+const activeView = document.getElementById("activeView");
+const distanceBrushValues = document.getElementById("distanceBrushValues");
+const arrivalBrushValues = document.getElementById("arrivalBrushValues");
+
+function printStateStatus(state) {
+  const stateValue = state.value;
+  const eventType = state.event.type;
+  const eventData = state.event.viewName;
+  const timestamp = Date.now();
+  currentState.textContent = printState(stateValue);
+  lastTransition.textContent = `${eventType} (${printTime(timestamp)})`;
+  if (eventData !== undefined) {
+    lastData.textContent = `viewName: ${eventData}`;
+  } else {
+    lastData.textContent = "";
+  }
+  activeView.textContent = state.context.activeViewName;
+  distanceBrushValues.textContent =
+    state.context.valueA.get("DISTANCE") +
+    ", " +
+    state.context.valueB.get("DISTANCE");
+  arrivalBrushValues.textContent =
+    state.context.valueA.get("ARR_TIME") +
+    ", " +
+    state.context.valueB.get("ARR_TIME");
+}
+
+const printState = function (stateValue) {
+  return typeof stateValue === "string"
+    ? stateValue
+    : JSON.stringify(stateValue);
+};
+
+const printTime = function (ts) {
+  return new Date(ts).toTimeString().split(" ")[0];
+};

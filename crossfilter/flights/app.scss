@@ -5,6 +5,7 @@ div#instructions {
 }
 
 #app {
+  margin-top: 16px;
   #count {
     grid-column: 1;
     grid-row: 1;
@@ -33,4 +34,26 @@ div#instructions {
     grid-column: 3;
     grid-row: 2;
   }
+}
+
+.machine {
+  display: inline;
+  color: aliceblue;
+}
+
+p.machine {
+  margin-left: 2px;
+}
+
+b.machine {
+  margin-left: 3%;
+}
+
+div.machineContainer {
+  background-color: black;
+  width: 100%;
+  height: 270px;
+  border-style: solid;
+  border-color: red;
+  overflow-y: scroll;
 }
