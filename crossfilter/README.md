@@ -8,4 +8,4 @@
 
 ## Known issues
 
-1. Explicit and implicit brush deletions are not supported.
+1. Implicit brush deletion is not supported.
