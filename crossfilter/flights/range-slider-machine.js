@@ -6,10 +6,13 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
         states: {
           idle: {
             on: {
-              mousedownChart: {
-                target: "addingBrush",
-                actions: "setBrushExists",
-              },
+              mousedownChart: "readyToAddBrush",
+            },
+          },
+          readyToAddBrush: {
+            on: {
+              mousemove: { target: "addingBrush", actions: "setBrushExists" },
+              mouseup: "idle",
             },
           },
           addingBrush: {
