@@ -2,7 +2,10 @@ import { App, ArrowDB, Views } from "falcon-vis";
 import { config } from "../config";
 import { EmptyLogger } from "./empty-logger";
 import { crossfilterMachine } from "./crossfilter-machine";
-import { interpret, mapState } from "xstate";
+import { interpret } from "xstate";
+import { inspect } from "@xstate/inspect";
+
+inspect({ iframe: false });
 
 document.getElementById("app")!.innerText = "";
 
@@ -34,11 +37,11 @@ type DimensionName =
 
 const views: Views<ViewName, DimensionName> = new Map();
 
-views.set("COUNT", {
-  title: "Flights selected",
-  type: "0D",
-  el: createElement("count"),
-});
+// views.set("COUNT", {
+//   title: "Flights selected",
+//   type: "0D",
+//   el: createElement("count"),
+// });
 views.set("DISTANCE", {
   title: "Distance in Miles",
   type: "1D",
@@ -176,9 +179,9 @@ new App(views, db, {
       initialContext
     );
 
-    const crossfilterService = interpret(
-      crossfilterMachineWithContext
-    ).onTransition((state) => {
+    const crossfilterService = interpret(crossfilterMachineWithContext, {
+      devTools: true,
+    }).onTransition((state) => {
       if (state.changed) {
         printStateStatus(state);
       }
