@@ -14,7 +14,7 @@ b.machine {
 div.machineContainer {
     background-color: black;
     width: 100%;
-    height: 160px;
+    height: 270px;
     border-style: solid;
     border-color: red;
 }
@@ -28,8 +28,7 @@ div.machineContainer {
     grid-template-columns: repeat(6, 1fr);
 }
 
-
-#scatter_vega_div{
+#scatter_vega_div {
     text-align: left;
     grid-column: 1/4;
 }
@@ -39,6 +38,14 @@ div.machineContainer {
     grid-column: 4/6;
 }
 
-li{
+li {
     color: white;
+}
+.box {
+    display: inline-flex;
+    padding-left: 5%;
+    align-items: flex-start;
+}
+.box > li {
+    margin-left: 20px;
 }

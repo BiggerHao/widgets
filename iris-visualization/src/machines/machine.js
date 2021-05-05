@@ -85,10 +85,10 @@ const setRangeValues = function (context, newValue, field) {
     context.range[field] = newValue;
 }
 
-const isBinHovered = (context, _) => context.hoveredBin!=null;
+const isBinHovered = (context, _) => context.hoveredBin != null;
 
-const checkDrag = function(context, _){
-    if(context.drag){
+const checkDrag = function (context, _) {
+    if (context.drag) {
         context.vis = "range";
     }
     return context.drag;
@@ -110,10 +110,10 @@ const isHoveredBin = function (context, event) {
 const isBinSelected = function (context, event) {
     let binSelected = false;
     // check if bin has been selected
-    if (context.selectedBin == null){
+    if (context.selectedBin == null) {
         binSelected = true;
     }
-    else if(event.data.selectedBin != null && event.data.selectedBin != context.selectedBin) {
+    else if (event.data.selectedBin != null && event.data.selectedBin != context.selectedBin) {
         binSelected = true;
     }
     // update selected bin
@@ -121,8 +121,92 @@ const isBinSelected = function (context, event) {
     return binSelected;
 }
 
-const isBinDeselected = function(context, event) {
+const isBinDeselected = function (context, event) {
     return !isBinSelected(context, event);
+}
+
+const isPanLeft = (context, event) => {
+    let isLeft = false;
+    if (event.data && event.data.panning && context.panning.x) {
+        let panning = event.data.panning;
+        isLeft = context.panning.x[0] < panning.x[0] && context.panning.x[1] < panning.x[1];
+        if (isLeft) {
+            context.panning.x = panning.x;
+        }
+    }
+    return isLeft;
+}
+
+const isPanRight = (context, event) => {
+    let isRight = false;
+    if (event.data && event.data.panning && context.panning.x) {
+        let panning = event.data.panning;
+        isRight = context.panning.x[0] > panning.x[0] && context.panning.x[1] > panning.x[1];
+        if (isRight) {
+            context.panning.x = panning.x;
+        }
+    }
+    return isRight;
+}
+
+const isPanXIdle = (context, event) => {
+    let isIdle = false;
+
+    if (event.data && event.data.panning) {
+        if (!context.panning.x) {
+            context.panning.x = event.data.panning.x;
+            isIdle = true;
+        } else {
+            let panning = event.data.panning;
+            isIdle = context.panning.x[0] == panning.x[0] && context.panning.x[1] == panning.x[1];
+            if (isIdle) {
+                context.panning.x = panning.x;
+            }
+        }
+    }
+    return isIdle;
+}
+
+const isPanDown = (context, event) => {
+    let isDown = false;
+    if (event.data && event.data.panning && context.panning.y) {
+        let panning = event.data.panning;
+        isDown = context.panning.y[0] < panning.y[0] && context.panning.y[1] < panning.y[1];
+        if (isDown) {
+            context.panning.y = panning.y;
+        }
+    }
+    return isDown;
+}
+
+const isPanUp = (context, event) => {
+    let isUp = false;
+    if (event.data && event.data.panning && context.panning.y) {
+        let panning = event.data.panning;
+        isUp = context.panning.y[0] > panning.y[0] && context.panning.y[1] > panning.y[1];
+        if (isUp) {
+            context.panning.y = panning.y;
+        }
+    }
+    return isUp;
+}
+
+const isPanYIdle = (context, event) => {
+    let isIdle = false;
+
+    if (event.data && event.data.panning) {
+        if (!context.panning.y) {
+            context.panning.y = event.data.panning.y;
+            isIdle = true;
+        } else {
+            let panning = event.data.panning;
+            isIdle = context.panning.y[0] == panning.y[0] && context.panning.y[1] == panning.y[1];
+            if (isIdle) {
+                context.panning.y = panning.y;
+            }
+        }
+    }
+    return isIdle;
 }
 
 /** ACTIONS */
@@ -133,108 +217,220 @@ const setVis = assign({
 const resetVis = assign({
     vis: null
 });
-const resetDrag = assign({
-    drag: false
-});
+const updateVis = assign({
+    vis: (_, evt) => evt.data.visName,
+    hoveredBin: (_, evt) => evt.data.hoveredBin
+})
 /** SCATTER PLOT STATES */
 
+const panXTransition = {
+    MOUSEMOVE: [{
+        target: "idle",
+        actions: updateVis,
+        cond: isPanXIdle
+    },
+    {
+        target: "left",
+        actions: updateVis,
+        cond: isPanLeft
+    },
+    {
+        target: "right",
+        actions: updateVis,
+        cond: isPanRight
+    }]
+};
+
+const panYTransition = {
+    MOUSEMOVE: [{
+        target: "idle",
+        actions: updateVis,
+        cond: isPanYIdle
+    },
+    {
+        target: "up",
+        actions: updateVis,
+        cond: isPanUp
+    },
+    {
+        target: "down",
+        actions: updateVis,
+        cond: isPanDown
+    }]
+};
+
 const scatterStates = {
+    id: 'scatter',
     initial: 'hover',
     states: {
         hover: {
+            id: 'scatHover',
             on: {
-                MOUSEDOWN: {target: "panning"},
-                MOUSEMOVE: {
-                    target: "panning"
-                },
-                WHEEL: [{
-                    target: "zoomedIn",
-                    cond: isZoomIn
-                },
-                {
-                    target: "zoomedOut",
-                    cond: isZoomOut
-                }]
+                MOUSEDOWN: { target: "panning" },
+                WHEEL: { target: 'zoom' }
             }
         },
-        zoomedIn: {
-            on: {
-                MOUSEDOWN: {target: "panning"},
-                WHEEL: [{
-                    target: "zoomedIn",
-                    cond: isZoomIn
+        zoom: {
+            id: 'zoom',
+            initial: 'idle',
+            states: {
+                idle: {
+                    id: 'zoomIdle',
+                    on: {
+                        WHEEL: [{
+                            target: "zoomedIn",
+                            cond: isZoomIn
+                        },
+                        {
+                            target: "zoomedOut",
+                            cond: isZoomOut
+                        }]
+                    }
                 },
-                {
-                    target: "zoomedOut",
-                    cond: isZoomOut
-                }]
-            }
-        },
-        zoomedOut: {
-            on: {
-                MOUSEDOWN: {target: "panning"},
-                WHEEL: [{
-                    target: "zoomedIn",
-                    cond: isZoomIn
+                zoomedIn: {
+                    id: 'zoomedIn',
+                    on: {
+                        WHEEL: [{
+                            target: "zoomedIn",
+                            cond: isZoomIn
+                        },
+                        {
+                            target: "zoomedOut",
+                            cond: isZoomOut
+                        }]
+                    }
                 },
-                {
-                    target: "zoomedOut",
-                    cond: isZoomOut
-                }]
+                zoomedOut: {
+                    id: 'zoomedOut',
+                    on: {
+                        WHEEL: [{
+                            target: "zoomedIn",
+                            cond: isZoomIn
+                        },
+                        {
+                            target: "zoomedOut",
+                            cond: isZoomOut
+                        }]
+                    }
+                }
+            },
+            on: {
+                MOUSEDOWN: { target: "panning" }
             }
         },
         panning: {
-            on: {
-                MOUSEMOVE: {
-                    target: "panning",
-                    cond: isPanning
+            id: 'panning',
+            type: 'parallel',
+            states: {
+                x: {
+                    id: 'x',
+                    initial: 'idle',
+                    states: {
+                        idle: {
+                            on: panXTransition
+                        },
+                        left: {
+                            on: panXTransition
+                        },
+                        right: {
+                            on: panXTransition
+                        }
+                    }
                 },
-                MOUSEUP: {target: "hover"}
+                y: {
+                    id: 'y',
+                    initial: 'idle',
+                    states: {
+                        idle: {
+                            on: panYTransition
+                        },
+                        up: {
+                            on: panYTransition
+                        },
+                        down: {
+                            on: panYTransition
+                        }
+                    }
+                }
+            },
+            on: {
+                MOUSEUP: { target: "hover" }
             }
         }
     }
 };
+
+
 /** RANGE SLIDER STATES */
 const dragTransitions = {
     MOUSEMOVE: [{
         target: "left",
+        actions: updateVis,
         cond: isMoveLeft
     },
     {
         target: "right",
+        actions: updateVis,
         cond: isMoveRight
     },
     {
-        target: "drag",
+        target: "idle",
+        actions: updateVis,
         cond: isIdle
-    }],
-    MOUSEUP: {
-        target: "hover"
-    }
+    }]
 };
 
 const rangeStates = {
+    id: 'range',
     initial: 'hover',
     states: {
         hover: {
+            id: 'rangeHover',
             on: {
                 MOUSEDOWN: {
                     target: 'drag'
                 },
-                MOUSEMOVE: {
-                    target: 'drag'
-                }
+                DBLCLICK: [
+                    {
+                        target: "drag.left",
+                        cond: isMoveLeft
+                    },
+                    {
+                        target: "drag.right",
+                        cond: isMoveRight
+                    },
+                    {
+                        target: "drag.idle",
+                        cond: isIdle
+                    }
+                ]
             }
         },
         drag: {
-            on: dragTransitions,
-        },
-        left: {
-            on: dragTransitions
-        },
-        right: {
-            on: dragTransitions
+            id: 'drag',
+            initial: 'idle',
+            states: {
+                idle: {
+                    id: 'idle',
+                    on: dragTransitions
+                },
+                left: {
+                    id: 'left',
+                    on: dragTransitions
+                },
+                right: {
+                    id: 'right',
+                    on: dragTransitions
+                }
+            },
+            on: {
+                MOUSEUP: {
+                    target: "hover"
+                }
+            }
+
         }
+
     }
 }
 /** BARCHART STATES */
@@ -243,6 +439,7 @@ const barCharStates = {
     initial: 'hover',
     states: {
         hover: {
+            id: 'barHover',
             on: {
                 MOUSEOVER: {
                     target: "binHovered",
@@ -255,27 +452,45 @@ const barCharStates = {
             }
         },
         binHovered: {
+            id: 'binHovered',
             on: {
                 CLICK: [
-                    { target: 'binSelected', cond: isBinSelected },
-                    { target: 'binDeselected', cond: isBinDeselected }
+                    { target: 'binClick.binSelected', cond: isBinSelected },
+                    { target: 'binClick.binDeselected', cond: isBinDeselected }
                 ]
             }
         },
-        binSelected: {
-            on: {
-                CLICK: {
-                    target: 'binDeselected',
-                    cond: isBinDeselected
+        binClick: {
+            id: 'binClick',
+            states: {
+                binSelected: {
+                    id: 'binSelected',
+                    on: {
+                        CLICK: {
+                            target: 'binDeselected',
+                            cond: isBinDeselected
+                        }
+                    }
+                },
+                binDeselected: {
+                    id: 'binDeselected',
+                    on: {
+                        CLICK: {
+                            target: 'binSelected',
+                            cond: isBinSelected
+                        }
+                    }
                 }
-            }
-        },
-        binDeselected: {
-            on: {
-                CLICK: {
-                    target: 'binSelected',
-                    cond: isBinSelected
-                }
+            },
+            on:{
+                MOUSEOVER: [{
+                    target: "binHovered",
+                    cond: isHoveredBin
+                },
+                {
+                    target: "hover",
+                    cond: !isHoveredBin
+                }]
             }
         }
     }
@@ -292,23 +507,19 @@ const machine = {
             selectedRegion: 450
         },
         zoomScale: 1,
-        panning: 0,
+        panning: {
+            x: null,
+            y: null
+        },
         hoveredBin: null,
         selectedBin: null
     },
     states: {
         rest: {
+            id: 'rest',
             on: {
                 MOUSEOVER: {
                     actions: setVis,
-                },
-                MOUSEMOVE: {
-                    target: "range",
-                    cond: checkDrag
-                },
-                MOUSEUP: {
-                    target: "rest",
-                    actions: resetDrag
                 }
             },
             always: [
