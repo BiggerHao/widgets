@@ -40,6 +40,8 @@ export const crossfilterMachine = createMachine(
   {
     guards: {
       brushExists: (context, event) => context.brushExists.get(event.viewName),
+      activeBrushExists: (context, event) =>
+        context.brushExists.get(context.activeViewName),
       onA: (context, event) =>
         context.handleA.get(context.activeViewName).some(hovering),
       onB: (context, event) =>

@@ -12,7 +12,13 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
           readyToAddBrush: {
             on: {
               mousemove: { target: "addingBrush", actions: "setBrushExists" },
-              mouseup: "idle",
+              mouseup: [
+                {
+                  target: `#${crossfilterId}.active.${rangeSliderId}.hasBrush`,
+                  cond: "activeBrushExists",
+                },
+                { target: "idle" },
+              ],
             },
           },
           addingBrush: {
@@ -31,6 +37,7 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
             target: "noBrush",
             actions: ["resetBrushExists", "resetValues"],
           },
+          mousedownChart: "noBrush.readyToAddBrush",
         },
         states: {
           handleA: {
