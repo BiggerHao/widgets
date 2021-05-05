@@ -8,4 +8,4 @@
 
 ## Known issues
 
-1. Implicit brush deletion is not supported.
+1. Resetting brushes by double clicking is not supported.
