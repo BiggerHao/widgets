@@ -5,7 +5,7 @@ import { crossfilterMachine } from "./crossfilter-machine";
 import { interpret } from "xstate";
 import { inspect } from "@xstate/inspect";
 
-inspect({ iframe: false });
+inspect({ url: "https://statecharts.io/inspect", iframe: false });
 
 document.getElementById("app")!.innerText = "";
 

@@ -7,7 +7,7 @@
   "scripts": {
     "start:flights": "parcel flights/index.html",
     "build:flights": "rm -rf dist && parcel build --public-url '/widgets/crossfilter-inspect/' flights/index.html",
-    "deploy:flights": "gh-pages -d dist -e crossfilter-inspect"
+    "deploy:flights": "gh-pages -d dist -e 'crossfilter-inspect'"
   },
   "dependencies": {
     "@xstate/inspect": "^0.4.1",
