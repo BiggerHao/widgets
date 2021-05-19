@@ -61,54 +61,52 @@ views.set("ARR_TIME", {
     format: ".1f",
   },
 });
-// views.set("DEP_TIME", {
-//   title: "Departure Time",
-//   type: "1D",
-//   el: createElement("departure"),
-//   dimension: {
-//     name: "DEP_TIME",
-//     bins: 24,
-//     extent: [0, 24],
-//     format: ".1f",
-//   },
-// });
-// views.set("DEP_DELAY", {
-//   title: "Departure Delay in Minutes",
-//   type: "1D",
-//   el: createElement("dep_delay"),
-//   dimension: {
-//     name: "DEP_DELAY",
-//     bins: 25,
-//     extent: [-20, 60],
-//     format: ".1f",
-//   },
-// });
-// views.set("ARR_DELAY", {
-//   title: "Arrival Delay in Minutes",
-//   type: "1D",
-//   el: createElement("arr_delay"),
-//   dimension: {
-//     name: "ARR_DELAY",
-//     bins: 25,
-//     extent: [-20, 60],
-//     format: ".1f",
-//   },
-// });
-// views.set("AIR_TIME", {
-//   title: "Airtime in Minutes",
-//   type: "1D",
-//   el: createElement("airtime"),
-//   dimension: {
-//     name: "AIR_TIME",
-//     bins: 25,
-//     extent: [0, 500],
-//     format: "d",
-//   },
-// });
+views.set("DEP_TIME", {
+  title: "Departure Time",
+  type: "1D",
+  el: createElement("departure"),
+  dimension: {
+    name: "DEP_TIME",
+    bins: 24,
+    extent: [0, 24],
+    format: ".1f",
+  },
+});
+views.set("DEP_DELAY", {
+  title: "Departure Delay in Minutes",
+  type: "1D",
+  el: createElement("dep_delay"),
+  dimension: {
+    name: "DEP_DELAY",
+    bins: 25,
+    extent: [-20, 60],
+    format: ".1f",
+  },
+});
+views.set("ARR_DELAY", {
+  title: "Arrival Delay in Minutes",
+  type: "1D",
+  el: createElement("arr_delay"),
+  dimension: {
+    name: "ARR_DELAY",
+    bins: 25,
+    extent: [-20, 60],
+    format: ".1f",
+  },
+});
+views.set("AIR_TIME", {
+  title: "Airtime in Minutes",
+  type: "1D",
+  el: createElement("airtime"),
+  dimension: {
+    name: "AIR_TIME",
+    bins: 25,
+    extent: [0, 500],
+    format: "d",
+  },
+});
 
 const url = require("url:./flights-10k.arrow");
-// const url =
-//   "https://media.githubusercontent.com/media/uwdata/flights-arrow/master/flights-10m.arrow";
 const db = new ArrowDB<ViewName, DimensionName>(url);
 
 const logger = new EmptyLogger<ViewName>();
@@ -119,14 +117,29 @@ new App(views, db, {
   cb: (_app) => {
     document.getElementById("loading")!.style.display = "none";
 
-    const viewNames = ["DISTANCE", "ARR_TIME"];
+    const viewNames = [
+      "DISTANCE",
+      "ARR_TIME",
+      "DEP_TIME",
+      "DEP_DELAY",
+      "ARR_DELAY",
+      "AIR_TIME",
+    ];
     const elementIds = {
       DISTANCE: "distance",
       ARR_TIME: "arrival",
+      DEP_TIME: "departure",
+      DEP_DELAY: "dep_delay",
+      ARR_DELAY: "arr_delay",
+      AIR_TIME: "airtime",
     };
     const eventNameSuffixes = {
       DISTANCE: "Distance",
       ARR_TIME: "ArrTime",
+      DEP_TIME: "DepTime",
+      DEP_DELAY: "DepDelay",
+      ARR_DELAY: "ArrDelay",
+      AIR_TIME: "AirTime",
     };
     const view = getViews(_app, viewNames);
     const brushExists = new Map();
@@ -352,11 +365,8 @@ const currentStateDisplay = document.getElementById("current-state");
 const lastTransitionDisplay = document.getElementById("last-transition");
 const lastDataDisplay = document.getElementById("last-data");
 const activeViewDisplay = document.getElementById("active-view");
-const distanceBrushValuesDisplay = document.getElementById(
-  "distance-brush-values"
-);
-const arrivalBrushValuesDisplay = document.getElementById(
-  "arrival-brush-values"
+const activeViewBrushValuesDisplay = document.getElementById(
+  "active-view-brush-values"
 );
 const nextEventsDisplay = document.getElementById("next-events");
 const nextStatesDisplay = document.getElementById("next-states");
@@ -374,14 +384,10 @@ function printStateStatus(state, service) {
     lastDataDisplay.textContent = "";
   }
   activeViewDisplay.textContent = state.context.activeViewName;
-  distanceBrushValuesDisplay.textContent =
-    state.context.valueA.get("DISTANCE") +
+  activeViewBrushValuesDisplay.textContent =
+    state.context.valueA.get(state.context.activeViewName) +
     ", " +
-    state.context.valueB.get("DISTANCE");
-  arrivalBrushValuesDisplay.textContent =
-    state.context.valueA.get("ARR_TIME") +
-    ", " +
-    state.context.valueB.get("ARR_TIME");
+    state.context.valueB.get(state.context.activeViewName);
   nextEventsDisplay.textContent = state.nextEvents.join(", ");
   const nextStates = new Map();
   state.nextEvents.map((event) => {

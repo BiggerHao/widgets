@@ -383,3 +383,10 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
     },
   };
 }
+
+export function generateMouseenterTransitions(rangeSliderId) {
+  return [
+    { target: `active.${rangeSliderId}.hasBrush`, cond: "brushExists" },
+    { target: `active.${rangeSliderId}.noBrush` },
+  ];
+}
