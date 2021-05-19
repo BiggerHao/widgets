@@ -1,11 +1,12 @@
+import { inspect } from "@xstate/inspect";
+
+inspect({ url: "https://statecharts.io/inspect", iframe: false });
+
 import { App, ArrowDB, Views } from "falcon-vis";
 import { config } from "../config";
 import { EmptyLogger } from "./empty-logger";
 import { crossfilterMachine } from "./crossfilter-machine";
 import { interpret } from "xstate";
-import { inspect } from "@xstate/inspect";
-
-inspect({ url: "https://statecharts.io/inspect", iframe: false });
 
 document.getElementById("app")!.innerText = "";
 
@@ -175,15 +176,15 @@ new App(views, db, {
       maxValue: maxValue,
     };
 
-    const crossfilterMachineWithContext = crossfilterMachine.withContext(
-      initialContext
-    );
+    const crossfilterMachineWithContext =
+      crossfilterMachine.withContext(initialContext);
 
     const crossfilterService = interpret(crossfilterMachineWithContext, {
       devTools: true,
-    }).onTransition((state) => {
+    });
+    crossfilterService.onTransition(function (state) {
       if (state.changed) {
-        printStateStatus(state);
+        printStateStatus(state, crossfilterService);
       }
     });
 
@@ -353,34 +354,46 @@ function registerEventListeners(
   });
 }
 
-const currentState = document.getElementById("currentState");
-const lastTransition = document.getElementById("lastTransition");
-const lastData = document.getElementById("lastData");
-const activeView = document.getElementById("activeView");
-const distanceBrushValues = document.getElementById("distanceBrushValues");
-const arrivalBrushValues = document.getElementById("arrivalBrushValues");
+const currentStateDisplay = document.getElementById("current-state");
+const lastTransitionDisplay = document.getElementById("last-transition");
+const lastDataDisplay = document.getElementById("last-data");
+const activeViewDisplay = document.getElementById("active-view");
+const distanceBrushValuesDisplay = document.getElementById(
+  "distance-brush-values"
+);
+const arrivalBrushValuesDisplay = document.getElementById(
+  "arrival-brush-values"
+);
+const nextEventsDisplay = document.getElementById("next-events");
+const nextStatesDisplay = document.getElementById("next-states");
 
-function printStateStatus(state) {
+function printStateStatus(state, service) {
   const stateValue = state.value;
   const eventType = state.event.type;
   const eventData = state.event.viewName;
   const timestamp = Date.now();
-  currentState.textContent = printState(stateValue);
-  lastTransition.textContent = `${eventType} (${printTime(timestamp)})`;
+  currentStateDisplay.textContent = printState(stateValue);
+  lastTransitionDisplay.textContent = `${eventType} (${printTime(timestamp)})`;
   if (eventData !== undefined) {
-    lastData.textContent = `viewName: ${eventData}`;
+    lastDataDisplay.textContent = `viewName: ${eventData}`;
   } else {
-    lastData.textContent = "";
+    lastDataDisplay.textContent = "";
   }
-  activeView.textContent = state.context.activeViewName;
-  distanceBrushValues.textContent =
+  activeViewDisplay.textContent = state.context.activeViewName;
+  distanceBrushValuesDisplay.textContent =
     state.context.valueA.get("DISTANCE") +
     ", " +
     state.context.valueB.get("DISTANCE");
-  arrivalBrushValues.textContent =
+  arrivalBrushValuesDisplay.textContent =
     state.context.valueA.get("ARR_TIME") +
     ", " +
     state.context.valueB.get("ARR_TIME");
+  nextEventsDisplay.textContent = state.nextEvents.join(", ");
+  const nextStates = new Map();
+  state.nextEvents.map((event) => {
+    nextStates.set(event, service.nextState(event).value);
+  });
+  displayNextStates(nextStates);
 }
 
 const printState = function (stateValue) {
@@ -392,3 +405,14 @@ const printState = function (stateValue) {
 const printTime = function (ts) {
   return new Date(ts).toTimeString().split(" ")[0];
 };
+
+function displayNextStates(nextStates) {
+  nextStatesDisplay.innerHTML = "";
+  for (const [eventName, state] of nextStates.entries()) {
+    const nextStateListItem = document.createElement("li");
+    nextStateListItem.innerHTML = `<pre class="machine">${printState(
+      state
+    )}</pre> from ${eventName}`;
+    nextStatesDisplay.append(nextStateListItem);
+  }
+}

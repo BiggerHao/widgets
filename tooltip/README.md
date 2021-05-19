@@ -1,5 +1,7 @@
 # Tooltip
 
+Simple implementation of the statechart for tooltip.
+
 Note: In this implementation, once the tooltip appears, mouse movements inside the button will not affect the position of the tooltip.
 
 ## How to use

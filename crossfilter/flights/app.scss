@@ -39,21 +39,17 @@ div#instructions {
 .machine {
   display: inline;
   color: aliceblue;
+  ul {
+    margin: 0;
+  }
 }
 
-p.machine {
-  margin-left: 2px;
-}
-
-b.machine {
-  margin-left: 3%;
-}
-
-div.machineContainer {
+div.machine-container {
   background-color: black;
   width: 100%;
   height: 270px;
   border-style: solid;
   border-color: red;
   overflow-y: scroll;
+  padding: 16px;
 }

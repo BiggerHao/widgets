@@ -21,6 +21,14 @@
             "value": 0
         },
         {
+            "name": "dragHandleL",
+            "value": false
+        },
+        {
+            "name": "dragHandleR",
+            "value": false
+        },
+        {
             "name": "deltaR",
             "update": "width"
         },
@@ -53,24 +61,6 @@
                 {
                     "events": "rect:mouseout, arc:mouseout",
                     "encode": "release"
-                }
-            ]
-        },
-        {
-            "name": "arcUpdate",
-            "on": [
-                {
-                    "events": "arc:mousedown",
-                    "encode": "selectArc"
-                }
-            ]
-        },
-        {
-            "name": "arcUpdateRelease",
-            "on": [
-                {
-                    "events": "arc:mouseup",
-                    "encode": "deselectArc"
                 }
             ]
         }
@@ -121,7 +111,7 @@
                         {
                             "events": [
                                 {
-                                    "source": "view",
+                                    "source": "window",
                                     "type": "mousemove",
                                     "consume": true,
                                     "between": [
@@ -130,7 +120,7 @@
                                             "type": "mousedown"
                                         },
                                         {
-                                            "source": "view",
+                                            "source": "window",
                                             "type": "mouseup"
                                         }
                                     ]
@@ -156,7 +146,7 @@
                         {
                             "events": [
                                 {
-                                    "source": "view",
+                                    "source": "window",
                                     "type": "mousemove",
                                     "consume": true,
                                     "between": [
@@ -165,7 +155,7 @@
                                             "type": "mousedown"
                                         },
                                         {
-                                            "source": "view",
+                                            "source": "window",
                                             "type": "mouseup"
                                         }
                                     ]
@@ -187,7 +177,7 @@
                         {
                             "events": [
                                 {
-                                    "source": "view",
+                                    "source": "window",
                                     "type": "mousemove",
                                     "consume": true,
                                     "between": [
@@ -196,7 +186,7 @@
                                             "type": "mousedown"
                                         },
                                         {
-                                            "source": "view",
+                                            "source": "window",
                                             "type": "mouseup"
                                         }
                                     ]
@@ -210,7 +200,7 @@
                             "update": "{count: drag.count+1, dx: drag.count == 0 ? 0 : x() - drag.start, start: drag.count == 0 ? x() : drag.start, startValues: drag.count == 0 ? [deltaL, deltaR] : drag.startValues, limitL: drag.dx!=0 ? drag.dx + drag.startValues[0] < minL || drag.dx + drag.startValues[1] < minL : false, limitR: drag.dx!=0 ? drag.dx + drag.startValues[0] > maxR || drag.dx + drag.startValues[1] > maxR : false }"
                         },
                         {
-                            "events": "view:mouseup",
+                            "events": "window:mouseup",
                             "update": "{count: 0, dx: 0, start: 0, startValues: [deltaL, deltaR], limitL: false, limitR: false}"
                         },
                         {
@@ -325,7 +315,7 @@
                         {
                             "events": [
                                 {
-                                    "source": "view",
+                                    "source": "window",
                                     "type": "mousemove",
                                     "consume": true,
                                     "between": [
@@ -334,7 +324,7 @@
                                             "type": "mousedown"
                                         },
                                         {
-                                            "source": "view",
+                                            "source": "window",
                                             "type": "mouseup"
                                         }
                                     ]
@@ -348,6 +338,41 @@
                             "update": "(x()<=maxR && x()>=minL) ? x() : deltaL "
                         }
                     ]
+                },
+                {
+                    "name": "dragHandleL",
+                    "push": "outer",
+                    "on": [
+                        {
+                            "events": [
+                                {
+                                    "source": "window",
+                                    "type": "mousemove",
+                                    "consume": true,
+                                    "between": [
+                                        {
+                                            "source": "scope",
+                                            "type": "mousedown"
+                                        },
+                                        {
+                                            "source": "window",
+                                            "type": "mouseup"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "touchmove",
+                                    "consume": true,
+                                    "filter": "event.touches.length === 1"
+                                }
+                            ],
+                            "update": "true"
+                        },
+                        {
+                            "events": "window:mouseup",
+                            "update": "false"
+                        }
+                    ]
                 }
             ],
             "marks": [
@@ -356,14 +381,14 @@
                     "name": "leftArc",
                     "encode": {
                         "enter": {
-                            "fill": {
-                                "value": "white"
-                            },
                             "stroke": {
                                 "value": "black"
                             }
                         },
                         "update": {
+                            "fill": {
+                                "signal": "!dragHandleL ? 'white' : 'red'"
+                            },
                             "x": {
                                 "signal": "deltaL>=minL ? (deltaL<=maxR ? deltaL : maxR) : minL"
                             },
@@ -391,16 +416,6 @@
                         "release": {
                             "fillOpacity": {
                                 "value": 1
-                            }
-                        },
-                        "selectArc": {
-                            "fill": {
-                                "value": "red"
-                            }
-                        },
-                        "deselectArc": {
-                            "fill": {
-                                "value": "white"
                             }
                         }
                     }
@@ -445,7 +460,7 @@
                         {
                             "events": [
                                 {
-                                    "source": "view",
+                                    "source": "window",
                                     "type": "mousemove",
                                     "consume": true,
                                     "between": [
@@ -454,7 +469,7 @@
                                             "type": "mousedown"
                                         },
                                         {
-                                            "source": "view",
+                                            "source": "window",
                                             "type": "mouseup"
                                         }
                                     ]
@@ -468,6 +483,41 @@
                             "update": "(x()<=maxR && x()>=minL) ? x() : deltaR "
                         }
                     ]
+                },
+                {
+                    "name": "dragHandleR",
+                    "push": "outer",
+                    "on": [
+                        {
+                            "events": [
+                                {
+                                    "source": "window",
+                                    "type": "mousemove",
+                                    "consume": true,
+                                    "between": [
+                                        {
+                                            "source": "scope",
+                                            "type": "mousedown"
+                                        },
+                                        {
+                                            "source": "window",
+                                            "type": "mouseup"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "touchmove",
+                                    "consume": true,
+                                    "filter": "event.touches.length === 1"
+                                }
+                            ],
+                            "update": "true"
+                        },
+                        {
+                            "events": "window:mouseup",
+                            "update": "false"
+                        }
+                    ]
                 }
             ],
             "marks": [
@@ -476,14 +526,15 @@
                     "name": "rightArc",
                     "encode": {
                         "enter": {
-                            "fill": {
-                                "value": "white"
-                            },
+                            
                             "stroke": {
                                 "value": "black"
                             }
                         },
                         "update": {
+                            "fill": {
+                                "signal": "!dragHandleR ? 'white' : 'red'"
+                            },
                             "x": {
                                 "signal": "deltaR>=minL ? (deltaR<=maxR ? deltaR : maxR) : minL"
                             },
@@ -506,16 +557,6 @@
                         "select": {
                             "fillOpacity": {
                                 "value": 0.5
-                            }
-                        },
-                        "selectArc": {
-                            "fill": {
-                                "value": "red"
-                            }
-                        },
-                        "deselectArc": {
-                            "fill": {
-                                "value": "white"
                             }
                         },
                         "release": {

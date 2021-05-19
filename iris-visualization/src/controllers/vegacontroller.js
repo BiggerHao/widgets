@@ -2,18 +2,40 @@ import vegaViews from './../views/vega';
 import * as vega from 'vega';
 
 class D3Controller {
+
     constructor() {
 
+        this.visNames = {
+            scatter: "scatter",
+            slider: "range",
+            barchart: "barchart"
+        }
         this.scatter = null;
         this.slider = null;
         this.histogram = null;
 
         this.drag = false;
         this.pan = false;
+
+        this.hoveredVis = null;
+        this.hoverBin = null;
+
+        this.scale = 1;
     }
 
     setCustomScheme = function (scheme) {
         vega.scheme("custom", scheme);
+    }
+
+    getZoomObj = function (zoomScale, xDom, yDom) {
+        return { zoomScale: zoomScale.toFixed(), panning: { x: [xDom[0].toFixed(3), xDom[1].toFixed(3)], y: [yDom[0].toFixed(3), yDom[1].toFixed(3)] }, visName: this.hoveredVis, hoveredBin: this.hoverBin }
+    }
+
+    getSliderRange = function (deltaL, deltaR) {
+        // sort range
+        let sliderRange = [deltaL, deltaR].sort((a, b) => a - b);
+        // get range with only 1 fixed number 
+        return [Number(sliderRange[0].toFixed(1)), Number(sliderRange[1].toFixed(1))];
     }
 
     createViews = function (scatterDiv, sliderDiv, histogramDiv, data, width) {
@@ -44,46 +66,23 @@ class D3Controller {
         this.bindSliderCallback(eventCallback);
         this.bindHistogramCallback(eventCallback);
         this.bindScatterCallback(eventCallback);
-    }
 
-    bindScatterCallback = function (eventCallback) {
-        let visName = "scatter";
-        let scale = 1;
-
-        let getZoomObj = function (zoomScale, xDom, yDom) {
-            return { zoomScale: zoomScale.toFixed(), panning: { x: [xDom[0].toFixed(1), xDom[1].toFixed(1)], y: [yDom[0].toFixed(1), yDom[1].toFixed(1)] } }
-        }
-
-        this.scatter.addEventListener("wheel", ((event, item) => {
-            scale += (event.deltaY * -0.1)
-
-            console.log(scale);
-            // get scatter portion && size
-            let xDom = this.scatter.signal("xdom");
-            let yDom = this.scatter.signal("ydom");
-            //let zoomScale = this.scatter.signal("zoomScale");
-            // update views
-            this.histogram.signal("scatterXRange", xDom);
-            this.histogram.signal("scatterYRange", yDom);
-            this.histogram.run();
-            // send event
-            eventCallback("WHEEL", getZoomObj(scale, xDom, yDom));
-
-        }).bind(this));
-
-        this.scatter.addEventListener("mousedown", ((event, item) => {
-            eventCallback("MOUSEDOWN");
-            this.pan = true;
-        }).bind(this));
-
-        this.scatter.addEventListener("mouseup", ((event, item) => {
-            if (this.pan) {
-                eventCallback("MOUSEUP");
+        window.addEventListener("mousemove", ((event) => {
+            if (this.drag) {
+                // get data from slider 
+                let deltaL = this.slider.signal("deltaL");
+                let deltaR = this.slider.signal("deltaR");
+                // update views
+                let range = this.getSliderRange(deltaL, deltaR);
+                this.scatter.signal("sliderRange", range);
+                this.scatter.run();
+                this.histogram.signal("sliderRange", range);
+                this.histogram.run();
+                // send event
+                let slideObj = { range: { handleL: deltaL.toFixed(1), handleR: deltaR.toFixed(1), selectedRegion: range[1] - range[0] }, visName: this.hoveredVis, hoveredBin: this.hoverBin };
+                eventCallback("MOUSEMOVE", slideObj);
             }
-            this.pan = false;
-        }).bind(this));
-
-        this.scatter.addEventListener("mousemove", (function (event, item) {
+            // panning
             if (this.pan) {
                 // get scatter portion && size
                 let xDom = this.scatter.signal("xdom");
@@ -94,22 +93,62 @@ class D3Controller {
                 this.histogram.signal("scatterYRange", yDom);
                 this.histogram.run();
                 // send event
-                eventCallback("MOUSEMOVE", getZoomObj(scale, xDom, yDom));
+                eventCallback("MOUSEMOVE", this.getZoomObj(this.scale, xDom, yDom));
             }
+        }).bind(this))
+        // mouseup callback
+        window.addEventListener("mouseup", (() => {
+            if (this.pan || this.drag) {
+                eventCallback("MOUSEUP");
+                // check whether another vis/window is hovered 
+                if ((this.drag && this.hoveredVis != this.visNames.range) || (this.pan && this.hoveredVis != this.visNames.scatter) || !this.hoveredVis) {
+                    // trigger mouseout - mouseover events to reach the visualization
+                    eventCallback("MOUSEOUT");
+                    this.hoveredVis && eventCallback("MOUSEOVER", { vis: this.hoveredVis, hoveredBin: this.hoverBin });
+                }
+                this.pan = false;
+                this.drag = false;
+            }
+        }).bind(this))
+    }
+
+    bindScatterCallback = function (eventCallback) {
+        let visName = this.visNames.scatter;
+
+        this.scatter.addEventListener("wheel", ((event, item) => {
+            this.scale += (event.deltaY * -0.1)
+
+            // get scatter portion && size
+            let xDom = this.scatter.signal("xdom");
+            let yDom = this.scatter.signal("ydom");
+            //let zoomScale = this.scatter.signal("zoomScale");
+            // update views
+            this.histogram.signal("scatterXRange", xDom);
+            this.histogram.signal("scatterYRange", yDom);
+            this.histogram.run();
+            // send event
+            eventCallback("WHEEL", this.getZoomObj(this.scale, xDom, yDom));
 
         }).bind(this));
 
-        this.scatter.addEventListener("mouseover", function (event, item) {
-            eventCallback("MOUSEOVER", { vis: visName });
-        });
+        this.scatter.addEventListener("mousedown", ((event, item) => {
+            eventCallback("MOUSEDOWN");
+            this.pan = true;
+        }).bind(this));
 
-        this.scatter.addEventListener("mouseout", function (event, item) {
-            !item && eventCallback("MOUSEOUT");
-        });
+        this.scatter.addEventListener("mouseover", ((event, item) => {
+            this.hoveredVis = visName;
+            !this.drag && !this.pan && eventCallback("MOUSEOVER", { vis: visName });
+        }).bind(this));
+
+        this.scatter.addEventListener("mouseout", ((event, item) => {
+            this.hoveredVis = null;
+            !this.drag && !this.pan && !item && eventCallback("MOUSEOUT");
+        }).bind(this));
     }
 
     bindHistogramCallback = function (eventCallback) {
-        let visName = "barchart";
+        let visName = this.visNames.barchart;
         let selectedBin = null;
 
         let getBinId = function (datum) {
@@ -139,42 +178,39 @@ class D3Controller {
 
         }).bind(this));
 
-        this.histogram.addEventListener("mouseover", function (event, item) {
+        this.histogram.addEventListener("mouseover", ((event, item) => {
+            this.hoveredVis = visName;
             if (item) {
-                let currentBin = JSON.stringify(getBinId(item.datum));
                 // bin has been hovered
-                eventCallback("MOUSEOVER", { vis: visName, hoveredBin: currentBin });
+                let currentBin = JSON.stringify(getBinId(item.datum));
+                // update hover bin 
+                this.hoverBin = currentBin;
+                !this.drag && !this.pan && eventCallback("MOUSEOVER", { vis: visName, hoveredBin: currentBin });
             }
             else {
-                eventCallback("MOUSEOVER", { vis: visName });
+                !this.drag && !this.pan && eventCallback("MOUSEOVER", { vis: visName });
             }
 
-        });
+        }).bind(this));
 
-        this.histogram.addEventListener("mouseout", function (event, item) {
-
+        this.histogram.addEventListener("mouseout", ((event, item) => {
+            this.hoveredVis = null;
             if (item) {
                 selectedBin = null;
+                this.hoverBin = null;
                 // mouseout from bin
-                eventCallback("MOUSEOUT", { hoveredBin: null });
+                !this.drag && !this.pan && eventCallback("MOUSEOUT", { hoveredBin: null });
             }
             else {
                 // mouseout from vis
-                eventCallback("MOUSEOUT")
+                !this.drag && !this.pan && eventCallback("MOUSEOUT")
             }
 
-        });
+        }).bind(this));
     }
 
     bindSliderCallback = function (eventCallback) {
-        let visName = "range";
-
-        let getSliderRange = function (deltaL, deltaR) {
-            // sort range
-            let sliderRange = [deltaL, deltaR].sort((a, b) => a - b);
-            // get range with only 1 fixed number 
-            return [Number(sliderRange[0].toFixed(1)), Number(sliderRange[1].toFixed(1))];
-        }
+        let visName = this.visNames.slider;
 
         this.slider.addEventListener("mousedown", ((event, item) => {
             if (!this.drag && item) {
@@ -183,35 +219,34 @@ class D3Controller {
             }
         }).bind(this));
 
-        this.slider.addEventListener("mouseup", ((event, item) => {
-            eventCallback("MOUSEUP");
-            this.drag = false;
-        }).bind(this));
 
-        this.slider.addEventListener("mousemove", (function (event, item) {
-            if (this.drag) {
+        this.slider.addEventListener("dblclick", (function (event, item) {
+
+            if (item && item.mark && item.mark.marktype == "rect") {
                 // get data from slider 
                 let deltaL = this.slider.signal("deltaL");
                 let deltaR = this.slider.signal("deltaR");
                 // update views
-                let range = getSliderRange(deltaL, deltaR);
+                let range = this.getSliderRange(deltaL, deltaR);
                 this.scatter.signal("sliderRange", range);
                 this.scatter.run();
                 this.histogram.signal("sliderRange", range);
                 this.histogram.run();
                 // send event
                 let slideObj = { range: { handleL: deltaL.toFixed(1), handleR: deltaR.toFixed(1), selectedRegion: range[1] - range[0] } };
-                eventCallback("MOUSEMOVE", slideObj);
+                eventCallback("DBLCLICK", slideObj);
             }
         }).bind(this));
 
-        this.slider.addEventListener("mouseover", function (event, item) {
-            item && eventCallback("MOUSEOVER", { vis: visName });
-        });
+        this.slider.addEventListener("mouseover", (function (event, item) {
+            this.hoveredVis = visName;
+            !this.drag && !this.pan && item && eventCallback("MOUSEOVER", { vis: visName });
+        }).bind(this));
 
-        this.slider.addEventListener("mouseout", function (event, item) {
-            eventCallback("MOUSEOUT");
-        });
+        this.slider.addEventListener("mouseout", (function (event, item) {
+            this.hoveredVis = null;
+            !this.drag && !this.pan && eventCallback("MOUSEOUT");
+        }).bind(this));
     }
 }
 

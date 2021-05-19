@@ -14,7 +14,6 @@ export default function (w, xIndex, yIndex, zIndex, binIndex) {
 
   let keys = ["Versicolor", "Setosa", "Virginica"];
   let color = d3.scaleOrdinal(keys, d3.schemeCategory10.slice(1, 4));
-  console.log(d3.schemeCategory10.slice(1, 4))
 
   let width = w, height = 230;
   let margin = { top: 15, right: 80, bottom: 30, left: 80 };

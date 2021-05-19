@@ -5,16 +5,19 @@ inspect({
     url: 'https://statecharts.io/inspect', // (default)
     iframe: false // open in new window
 });
-
+import { toDirectedGraph } from '@xstate/graph';
 import { createMachine, interpret } from 'xstate';
 import irisData from './../res/iris.csv'
 import machine from './machines/machine';
 import controllers from './controllers';
+import { hierarchy } from 'd3-hierarchy';
 
 let d3Init = false;
 let width = 450;
 
 var nextEvents = [];
+var nextStates = {};
+var latencies = {};
 // controllers
 var d3Controller = controllers.d3Controller;
 var vegaController = controllers.vegaController;
@@ -23,11 +26,122 @@ vegaController.setCustomScheme(d3Controller.getCustomScheme());
 
 // Stateless machine definition
 const visMachine = createMachine(machine);
+const diGraph = toDirectedGraph(visMachine);
+console.log("digraph", diGraph);
+
+const observer = new PerformanceObserver(function (list) {
+    list.getEntries().forEach(entry => {
+        if (entry.name != "START") {
+            if (!latencies[entry.name]) {
+                // if latency does not exist, create it
+                latencies[entry.name] = {
+                    start: 0,
+                    duration: 0,
+                    latency: 0
+                };
+            }
+            if (entry.startTime != 0) {
+                latencies[entry.name].start = entry.startTime;
+            }
+            if (entry.duration != 0) {
+                latencies[entry.name].duration = entry.duration;
+            }
+        }
+    });
+    Object.keys(latencies).forEach(event => {
+        let eventData = latencies[event];
+        eventData.latency = Math.abs(eventData.duration - eventData.start);
+    });
+});
 
 const printState = function (stateValue) {
     return typeof stateValue === "string" ? stateValue : JSON.stringify(stateValue);
 }
 
+const filterChild = function (children, name) {
+    return children ? children.filter(child => child.stateNode.key == name)[0] : null;
+}
+
+const getHierarchyStates = function (currentState) {
+    let states = [];
+    let parent = typeof currentState === "string" ? null : Object.keys(currentState)[0];
+    if (parent != null) {
+        if (typeof parent !== "string") {
+            Object.keys(parent).forEach(child => {
+
+                states.push(child, ...getHierarchyStates(currentState[parent][child]))
+            });
+        }
+        else {
+            states.push(parent, ...getHierarchyStates(currentState[parent]));
+        }
+    }
+    else {
+        states.push(currentState);
+    }
+    return states;
+}
+
+const addEdge = function(edge, hierarchy, depth, parentKey){
+    let destination = edge.target.path.join(" ");
+    let initial = edge.target.initial
+    destination+= initial!=null && !edge.target.path.includes(initial) ? " "+initial : "";
+    return {
+        target: {
+            event: edge.transition.event,
+            cond: edge.transition.cond ? edge.transition.cond.name : "",
+            destination: destination
+           
+        },
+        child: depth < 1 ? predictiveStep(null, depth, hierarchy, parentKey) : []
+    }
+}
+const predictiveStep = function (currentState, depth, hierarchy, parentNode) {
+    let step = []
+    if (depth == null) {
+        depth = 0;
+        hierarchy = getHierarchyStates(currentState);
+    }
+    else {
+        depth++;
+    }
+
+    // if current state is inside a fsm (i.e. is an object, get parent)
+    let subgraphs = [];
+    hierarchy && hierarchy.forEach((node, index) => {
+        let nodeObj = filterChild(index == 0 ? diGraph.children : subgraphs[index - 1].children, node);
+        nodeObj && subgraphs.push(nodeObj);
+    });
+    
+    subgraphs.forEach(subgraph => {
+        subgraph.edges.forEach(edge => {
+            let newHierarchy = edge.target.path;
+            if (!newHierarchy.includes(edge.target.key)) {
+                newHierarchy.push(edge.target.key);
+            }
+            
+            step.push(addEdge(edge, newHierarchy, depth, subgraph.stateNode.key));
+        });
+
+        if(depth ==1 && subgraph.stateNode.initial){
+            let initialState = subgraph.children.filter(child => child.stateNode.key == subgraph.stateNode.initial)[0];
+            if(initialState && parentNode == "rest"){
+                initialState.edges.forEach(edge =>{
+                    step.push(addEdge(edge, null, depth, parentNode));
+                })
+            }
+        }
+        
+    });
+
+    return step;
+}
+/**
+ * @deprecated
+ * @param {*} eventString 
+ * @param {*} currentState 
+ * @returns 
+ */
 const getEventNextStates = function (eventString, currentState) {
     let nextStates = [];
     // if current state is inside a fsm (i.e. is an object, get parent)
@@ -85,26 +199,69 @@ const getNextStates = function (stateValue, nextEvents, context) {
     return nextStates;
 }
 
-const printNextStates = function (futureStates) {
+const createLiElement = function (div, keyString, valueString, subValueString) {
+    let li = document.createElement("li");
+    let key = document.createElement("strong");
+    key.textContent = keyString;
+    key.className = "machine";
+    li.appendChild(key);
+    let value = document.createElement("p");
+    value.textContent = valueString;
+    value.className = "machine";
+    li.appendChild(value);
+    if (subValueString) {
+        let subValue = document.createElement("small");
+        subValue.textContent = subValueString;
+        subValue.className = "machine";
+        li.appendChild(subValue);
+    }
+    div.appendChild(li);
+}
+
+const printNextStates = function (predictiveStep, domElement, isFlex) {
+    if (!domElement) {
+        domElement = nextStatesDiv;
+        domElement.innerHTML = "";
+    }
+    let unList = document.createElement("ul");
+    predictiveStep.forEach(step =>{
+        
+        if (isFlex) {
+            unList.className = "box";
+        }
+        let info = "(cond: "+(step.target.cond!="" ? step.target.cond : "none");
+        // add latency
+        info+=step.target.event!="" ? ", lat: "+(latencies[step.target.event] ? latencies[step.target.event].latency : 0)+" ms)" : ")";
+        createLiElement(
+            unList, step.target.destination, 
+            step.target.event!="" ? "with "+step.target.event : "eventless",
+            info
+        );
+        if(step.child && step.child.length > 0){
+            printNextStates(step.child, unList, true);
+        }
+        
+    })
+    domElement.appendChild(unList);
+}
+
+/**
+ * @deprecated
+ * @param {*} futureStates 
+ */
+const printAvailableTransition = function (futureStates) {
     // first: clear html
     availableTransition.innerHTML = "";
     // for each transition, get corresponding obj and append it to a LI element
     Object.keys(futureStates).forEach(transition => {
         let futureState = futureStates[transition];
-        let li = document.createElement("li");
-        let key = document.createElement("strong");
-        key.textContent = (transition != "" ? transition : "always") + ": ";
-        key.className = "machine";
-        li.appendChild(key);
-        let value = document.createElement("p");
-        value.textContent = JSON.stringify(futureState);
-        value.className = "machine";
-        li.appendChild(value);
-        availableTransition.appendChild(li);
+        createLiElement(availableTransition, (transition != "" ? transition : "always") + ": ", JSON.stringify(futureState), latencies[transition] ? "(" + latencies[transition].latency + " ms)" : "")
     })
-
 }
 
+const printTime = function(ts){
+return new Date(ts).toTimeString().split(' ')[0]
+}
 const printStateStatus = function (state) {
     let stateValue = state.value;
     nextEvents = state.nextEvents;
@@ -112,23 +269,30 @@ const printStateStatus = function (state) {
     let eventData = state.event.data;
     let context = state.context;
     let futureStates = getNextStates(stateValue, nextEvents, context);
-
-    console.log("navigating to state %o with event %s.\navailable events: %o \ncontext: %o", stateValue, eventType, futureStates, context);
-    printNextStates(futureStates);
+    let step = predictiveStep(stateValue);
+    let timestamp = Date.now()
+    console.log("%s: navigating to state %o with event %s.\n- available events: %o \n- predictive step: %o \n- context: %o", printTime(timestamp), stateValue, eventType, futureStates, step, context);
+    printNextStates(step);
     currentState.textContent = printState(stateValue);
-    lastTransition.textContent = eventType;
+    lastTransition.textContent = eventType+" ("+printTime(timestamp)+")";
     lastData.textContent = JSON.stringify(eventData) || "none";
     machineContext.textContent = JSON.stringify(context);
 }
 
 // Machine instance with internal state
 const service = interpret(visMachine, { devTools: true })
-    .onTransition(((state) => printStateStatus(state)).bind(this))
+    .onTransition(((state) => {
+        printStateStatus(state);
+        performance.measure(state.event.type);
+    }).bind(this))
     .start();
 // => 'inactive'
 
 const app = async function () {
 
+    // Register observer for mark.
+    observer.observe({ entryTypes: ["measure", "mark"] });
+    performance.mark("START")
     let data = await d3Controller.loadData(irisData)
         .catch(err => {
             console.log("received error ", err);
@@ -169,11 +333,9 @@ const initD3 = function (data) {
 
 const sendEvent = function (eventString, data) {
     if (nextEvents.length == 0 || nextEvents.includes(eventString)) {
+        performance.mark(eventString);
         data && service.send({ type: eventString, data: data });
         !data && service.send(eventString);
-    }
-    else{
-        console.log("event %s forbidden", eventString);
     }
 }
 

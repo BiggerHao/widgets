@@ -12,10 +12,10 @@
 
 <body>
   <h1 style="text-align: center;">Iris Visualization</h1>
-  <div style="text-align: center;">
-    <input type="radio" name="vis" id="d3"  />
+  <div style="text-align: center;" hidden>
+    <input type="radio" name="vis" id="d3" />
     <label for="one">D3</label>
-    <input type="radio" name="vis" id="vega" checked/>
+    <input type="radio" name="vis" id="vega" checked />
     <label for="one">Vega</label>
   </div>
   <div class="machineContainer">
@@ -27,11 +27,20 @@
       <p class="machine">(data: <small id="lastData" class="machine"></small>)</p>
     </div>
     <div>
-      <b class="machine">Available Transition:</b>
-      <ul id="availableTransition">
+      <div>
+        <b class="machine">Next states:</b>
+        <div id="nextStatesDiv">
 
-      </ul>
-      
+        </div>
+
+      </div>
+      <div hidden>
+        <b class="machine">Available Transition:</b>
+        <ul id="availableTransition">
+
+        </ul>
+
+      </div>
     </div>
     <div>
       <b class="machine">Context: </b>
@@ -55,6 +64,6 @@
   <!--
   <iframe data-xstate style="width: 100%; height: 600px;"></iframe>
   -->
-<script type="text/javascript" src="main.js?c00d1a0dad6079d38cdf"></script></body>
+<script type="text/javascript" src="main.js?43f7b5ce18b1a660d927"></script></body>
 
 </html>

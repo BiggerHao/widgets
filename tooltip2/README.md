@@ -1,5 +1,7 @@
 # Tooltip
 
+Another example of how to implement the statechart for tooltip.
+
 Note: In this implementation, once the tooltip appears, any mouse movement will cause the tooltip to hide.
 
 ## How to use
