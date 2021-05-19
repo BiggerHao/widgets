@@ -1,5 +1,8 @@
 import { createMachine, assign } from "xstate";
-import { createRangeSliderMachine } from "./range-slider-machine.js";
+import {
+  createRangeSliderMachine,
+  generateMouseenterTransitions,
+} from "./range-slider-machine.js";
 
 function hovering(element) {
   return element.matches(":hover");
@@ -15,14 +18,12 @@ export const crossfilterMachine = createMachine(
       inactive: {
         entry: "resetActiveView",
         on: {
-          mouseenterDistance: [
-            { target: "active.distance.hasBrush", cond: "brushExists" },
-            { target: "active.distance.noBrush" },
-          ],
-          mouseenterArrTime: [
-            { target: "active.arrTime.hasBrush", cond: "brushExists" },
-            { target: "active.arrTime.noBrush" },
-          ],
+          mouseenterDistance: generateMouseenterTransitions("distance"),
+          mouseenterArrTime: generateMouseenterTransitions("arrTime"),
+          mouseenterDepTime: generateMouseenterTransitions("depTime"),
+          mouseenterDepDelay: generateMouseenterTransitions("depDelay"),
+          mouseenterArrDelay: generateMouseenterTransitions("arrDelay"),
+          mouseenterAirTime: generateMouseenterTransitions("airTime"),
         },
       },
       active: {
@@ -33,6 +34,10 @@ export const crossfilterMachine = createMachine(
         states: {
           distance: createRangeSliderMachine(crossfilterId, "distance"),
           arrTime: createRangeSliderMachine(crossfilterId, "arrTime"),
+          depTime: createRangeSliderMachine(crossfilterId, "depTime"),
+          depDelay: createRangeSliderMachine(crossfilterId, "depDelay"),
+          arrDelay: createRangeSliderMachine(crossfilterId, "arrDelay"),
+          airTime: createRangeSliderMachine(crossfilterId, "airTime"),
         },
       },
     },
