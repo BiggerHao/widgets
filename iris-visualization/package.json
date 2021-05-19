@@ -37,7 +37,9 @@
     "@xstate/graph": "^1.3.0",
     "@xstate/inspect": "^0.4.1",
     "d3": "^6.6.1",
+    "dotenv": "^9.0.2",
     "normalize.css": "^8.0.1",
+    "squel": "^5.13.0",
     "vega": "^5.19.1",
     "xstate": "^4.17.0"
   },
@@ -46,6 +48,7 @@
     "> 1%"
   ],
   "scripts": {
+    "autobuild": "node ./build_script.js",
     "start": "webpack-dev-server --mode development --hot --inline --open",
     "build": "webpack --mode none"
   }

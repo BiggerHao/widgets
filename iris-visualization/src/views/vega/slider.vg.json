@@ -4,10 +4,14 @@
     "padding": 5,
     "data": [
         {
-            "name": "irisData"
+            "name": "dataset"
         }
     ],
     "signals": [
+        {
+            "name": "rangeLabel",
+            "value": ""
+        },
         {
             "name": "minL",
             "value": 0
@@ -69,8 +73,8 @@
         {
             "name": "x",
             "domain": {
-                "data": "irisData",
-                "field": "petalLength"
+                "data": "dataset",
+                "field": "rangeField"
             },
             "range": {
                 "signal": "[0, width]"
@@ -92,7 +96,9 @@
                   }
                 }
             },
-            "title": "Petal Length (cm)"
+            "title": {
+                "signal": "rangeLabel"
+            }
         }
     ],
     "marks": [

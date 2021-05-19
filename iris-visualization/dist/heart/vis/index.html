@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>
+    XState Visualization
+  </title>
+</head>
+
+<body>
+  <div id="loading">
+    <div id="loader"></div>
+    <p>Loading...</p>
+  </div>
+  <div id="page" hidden>
+    <h1 id="titleVis" hidden></h1>
+    <button type="button" id="menubutton" class="collapsible">
+      <h1 id="title"></h1><small id="arrow">&darr;</small>
+    </button>
+    <div class="content">
+      <b>Datasets: </b>
+      <input type="radio" name="datasets" id="iris" />
+      <label for="iris">Iris</label>
+      <input type="radio" name="datasets" id="wine" />
+      <label for="wine">Wine</label>
+      <input type="radio" name="datasets" id="heart" />
+      <label for="heart">Heart</label>
+      <input type="radio" name="datasets" id="adult" />
+      <label for="adult">Adult</label>
+      <b>XState: </b>
+      <input type="checkbox" id="xstateSwitch" />
+      <b>Query: </b>
+      <input type="checkbox" id="querySwitch" />
+      <b>XState Dashboard: </b>
+      <input type="checkbox" id="dashboardSwitch" />
+      <b>Query Dashboard: </b>
+      <input type="checkbox" id="queryDashboardSwitch" />
+      <b>Inspector: <small>(refresh to update)</small></b>
+      <input type="checkbox" id="inspectorSwitch" />
+    </div>
+    <div style="text-align: center;" hidden>
+      <input type="radio" name="vis" id="d3" />
+      <label for="one">D3</label>
+      <input type="radio" name="vis" id="vega" checked />
+      <label for="one">Vega</label>
+    </div>
+    <div class="machineContainer" id="dashboard">
+      <div>
+        <b class="machine">Current State: </b>
+        <p id="currentState" class="machine"></p>
+        <b class="machine">Last Transition:</b>
+        <p id="lastTransition" class="machine"></p>
+        <p class="machine">(data: <small id="lastData" class="machine"></small>)</p>
+      </div>
+      <div>
+        <div>
+          <b class="machine">Next states:</b>
+          <div id="nextStatesDiv">
+
+          </div>
+
+        </div>
+        <div hidden>
+          <b class="machine">Available Transition:</b>
+          <ul id="availableTransition">
+
+          </ul>
+
+        </div>
+      </div>
+      <div>
+        <b class="machine">Context: </b>
+        <small id="machineContext" class="machine"></small>
+      </div>
+    </div>
+    <div class="machineContainer" id="queryDashboard">
+      <div>
+        <b class="machine">Global Query:</b>
+        <p id="globalQueryText" class="machine"></p>
+      </div>
+      <div>
+        <b class="machine">Current Query:</b>
+        <p id="eventQueryText" class="machine"></p>
+      </div>
+      <b class="machine">Future Queries:</b>
+      <div id="futureQueriesDiv">
+
+      </div>
+    </div>
+    <div id="d3_div">
+      <div id="slider_d3_div" style="margin-left: 25%; width: 50%;"></div>
+      <div>
+        <div id="scatter_d3_div" style="display: inline-flex; width: 50%;"></div>
+        <div id="histogram_d3_div" style="display: inline-flex; width: 40%;"></div>
+      </div>
+    </div>
+    <div id="vega_div">
+      <div id="slider_vega_div" style="text-align: center;"></div>
+      <div id="wrapper">
+        <div id="scatter_vega_div"></div>
+        <div id="histogram_vega_div"></div>
+      </div>
+    </div>
+  </div>
+  <!--
+  <iframe data-xstate style="width: 100%; height: 600px;"></iframe>
+  -->
+<script type="text/javascript" src="main.js?bbb5b28e74393a807e41"></script></body>
+
+</html>

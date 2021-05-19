@@ -10,6 +10,18 @@
     "autosize": "none",
     "signals": [
         {
+            "name": "colorLabel",
+            "value": ""
+        },
+        {
+            "name": "xLabel",
+            "value": ""
+        },
+        {
+            "name": "yLabel",
+            "value": ""
+        },
+        {
             "name": "binRange",
             "value": null
         },
@@ -233,8 +245,12 @@
             ]
         },
         {
+            "name": "dataSize",
+            "value": "200"
+        },
+        {
             "name": "size",
-            "update": "clamp(200 / span(xdom), 1, 1000)"
+            "update": "clamp(dataSize / span(xdom), 1, dataSize)"
         },
         {
             "name": "zoomScale",
@@ -243,16 +259,16 @@
     ],
     "data": [
         {
-            "name": "irisData",
+            "name": "dataset",
             "transform": [
                 {
                     "type": "extent",
-                    "field": "sepalLength",
+                    "field": "xField",
                     "signal": "xext"
                 },
                 {
                     "type": "extent",
-                    "field": "sepalWidth",
+                    "field": "yField",
                     "signal": "yext"
                 }
             ]
@@ -283,21 +299,11 @@
             "name": "color",
             "type": "ordinal",
             "domain": {
-                "data": "irisData",
-                "field": "variety"
+                "data": "dataset",
+                "field": "colorField"
             },
             "range": {
                 "scheme": "custom"
-            }
-        },
-        {
-            "name": "rangeScale",
-            "domain": {
-                "data": "irisData",
-                "field": "petalLength"
-            },
-            "range": {
-                "signal": "[0, width]"
             }
         }
     ],
@@ -305,18 +311,24 @@
         {
             "scale": "xscale",
             "orient": "bottom",
-            "title": "Sepal Length (cm)"
+            "title": {
+                "signal": "xLabel"
+            }
         },
         {
             "scale": "yscale",
             "orient": "left",
-            "title": "Sepal Width (cm)"
+            "title": {
+                "signal": "yLabel"
+            }
         }
     ],
     "legends": [
         {
             "fill": "color",
-            "title": "Variety",
+            "title": {
+                "signal": "colorLabel"
+            },
             "offset": 0,
             "encode": {
                 "symbols": {
@@ -336,14 +348,14 @@
         {
             "type": "symbol",
             "from": {
-                "data": "irisData"
+                "data": "dataset"
             },
             "clip": true,
             "encode": {
                 "enter": {
                     "fill": {
                         "scale": "color",
-                        "field": "variety"
+                        "field": "colorField"
                     },
                     "stroke": {
                         "value": "black"
@@ -352,17 +364,17 @@
                 "update": {
                     "x": {
                         "scale": "xscale",
-                        "field": "sepalLength"
+                        "field": "xField"
                     },
                     "y": {
                         "scale": "yscale",
-                        "field": "sepalWidth"
+                        "field": "yField"
                     },
                     "size": {
                         "signal": "size"
                     },
                     "opacity": {
-                        "signal": "sliderRange!=null && binRange!=null ? inrange(datum.petalLength, [invert('rangeScale', sliderRange[0]), invert('rangeScale', sliderRange[1])]) && inrange(datum.petalWidth, binRange) : (binRange!=null ? inrange(datum.petalWidth, binRange) : (sliderRange!=null ? inrange(datum.petalLength, [invert('rangeScale', sliderRange[0]), invert('rangeScale', sliderRange[1])]) : true))"
+                        "signal": "sliderRange!=null && binRange!=null ? inrange(datum.rangeField, sliderRange) && inrange(datum.binField, binRange) : (binRange!=null ? inrange(datum.binField, binRange) : (sliderRange!=null ? inrange(datum.rangeField, sliderRange) : true))"
                     }
                 }
             }

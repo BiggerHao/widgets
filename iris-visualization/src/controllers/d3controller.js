@@ -32,7 +32,7 @@ class D3Controller {
     }
 
     getCustomScheme = function(){
-        return d3.schemeCategory10.slice(1, 4);
+        return d3.schemeCategory10.slice(1);
     }
 
     loadData = async function (dataPath) {

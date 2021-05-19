@@ -4,6 +4,14 @@
     "padding": 5,
     "signals": [
         {
+            "name": "xLabel",
+            "value": ""
+        },
+        {
+            "name": "yLabel",
+            "value": ""
+        },
+        {
             "name": "sliderRange",
             "value": null
         },
@@ -45,40 +53,30 @@
     ],
     "data": [
         {
-            "name": "irisData",
+            "name": "dataset",
             "transform": [
                 {
                     "type": "extent",
-                    "field": "petalWidth",
+                    "field": "binField",
                     "signal": "xext"
-                },
-                {
-                    "type": "extent",
-                    "field": "sepalLength",
-                    "signal": "slext"
-                },
-                {
-                    "type": "extent",
-                    "field": "sepalWidth",
-                    "signal": "swext"
                 }
             ]
         },
         {
             "name": "binned",
-            "source": "irisData",
+            "source": "dataset",
             "transform": [
                 {
                     "type": "filter",
-                    "expr": "scatterXRange && scatterYRange ? inrange(datum.sepalLength, scatterXRange) && inrange(datum.sepalWidth, scatterYRange) : true"
+                    "expr": "scatterXRange && scatterYRange ? inrange(datum.xField, scatterXRange) && inrange(datum.yField, scatterYRange) : true"
                 },
                 {
                     "type": "filter",
-                    "expr": "sliderRange!=null ? inrange(datum.petalLength, [invert('rangeScale', sliderRange[0]), invert('rangeScale', sliderRange[1])]) : true"
+                    "expr": "sliderRange!=null ? inrange(datum.rangeField, sliderRange) : true"
                 },
                 {
                     "type": "bin",
-                    "field": "petalWidth",
+                    "field": "binField",
                     "extent": {
                         "signal": "xext"
                     },
@@ -107,11 +105,11 @@
         },
         {
             "name": "binned-static",
-            "source": "irisData",
+            "source": "dataset",
             "transform": [
                 {
                     "type": "bin",
-                    "field": "petalWidth",
+                    "field": "binField",
                     "extent": {
                         "signal": "xext"
                     },
@@ -159,16 +157,6 @@
             },
             "zero": true,
             "nice": true
-        },
-        {
-            "name": "rangeScale",
-            "domain": {
-                "data": "irisData",
-                "field": "petalLength"
-            },
-            "range": {
-                "signal": "[0, width]"
-            }
         }
     ],
     "axes": [
@@ -176,14 +164,18 @@
             "orient": "bottom",
             "scale": "xscale",
             "zindex": 1,
-            "title": "Petal Width (cm)"
+            "title": {
+                "signal": "xLabel"
+            }
         },
         {
             "orient": "left",
             "scale": "yscale",
             "tickCount": 5,
             "zindex": 1,
-            "title": "# of Iris"
+            "title": {
+                "signal": "yLabel"
+            }
         }
     ],
     "marks": [
