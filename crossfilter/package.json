@@ -10,6 +10,7 @@
     "deploy:flights": "gh-pages -d dist -e crossfilter"
   },
   "dependencies": {
+    "@xstate/graph": "^1.3.0",
     "falcon-vis": "^0.16.0",
     "xstate": "^4.17.1"
   },

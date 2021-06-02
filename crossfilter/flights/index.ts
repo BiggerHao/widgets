@@ -3,6 +3,12 @@ import { config } from "../config";
 import { EmptyLogger } from "./empty-logger";
 import { crossfilterMachine } from "./crossfilter-machine";
 import { interpret, mapState } from "xstate";
+import { toDirectedGraph } from '@xstate/graph';
+
+const MAX_DEPTH = 1;
+const INITIAL_STATE = "inactive";
+
+let diGraph;
 
 document.getElementById("app")!.innerText = "";
 
@@ -187,6 +193,7 @@ new App(views, db, {
 
     const crossfilterMachineWithContext =
       crossfilterMachine.withContext(initialContext);
+    diGraph = toDirectedGraph(crossfilterMachineWithContext);
 
     const crossfilterService = interpret(crossfilterMachineWithContext);
     crossfilterService.onTransition(function (state) {
@@ -368,7 +375,6 @@ const activeViewDisplay = document.getElementById("active-view");
 const activeViewBrushValuesDisplay = document.getElementById(
   "active-view-brush-values"
 );
-const nextEventsDisplay = document.getElementById("next-events");
 const nextStatesDisplay = document.getElementById("next-states");
 
 function printStateStatus(state, service) {
@@ -388,12 +394,9 @@ function printStateStatus(state, service) {
     state.context.valueA.get(state.context.activeViewName) +
     ", " +
     state.context.valueB.get(state.context.activeViewName);
-  nextEventsDisplay.textContent = state.nextEvents.join(", ");
-  const nextStates = new Map();
-  state.nextEvents.map((event) => {
-    nextStates.set(event, service.nextState(event).value);
-  });
-  displayNextStates(nextStates);
+  nextStatesDisplay.innerHTML = "";
+  const nextSteps = predictiveStep(state.value, null, null, null);
+  printNextStates(nextSteps, nextStatesDisplay, false);
 }
 
 const printState = function (stateValue) {
@@ -406,13 +409,159 @@ const printTime = function (ts) {
   return new Date(ts).toTimeString().split(" ")[0];
 };
 
-function displayNextStates(nextStates) {
-  nextStatesDisplay.innerHTML = "";
-  for (const [eventName, state] of nextStates.entries()) {
-    const nextStateListItem = document.createElement("li");
-    nextStateListItem.innerHTML = `<pre class="machine">${printState(
-      state
-    )}</pre> from ${eventName}`;
-    nextStatesDisplay.append(nextStateListItem);
+function printNextStates(predictiveStep, domElement, isFlex) {
+
+  let unList = document.createElement("ul");
+  predictiveStep.forEach(step => {
+
+    if (isFlex) {
+      unList.className = "box";
+    }
+    let info = " (cond: " + (step.target.cond != "" ? step.target.cond : "none") + ")";
+    createLiElement(
+      unList, step.target.destination,
+      step.target.event != "" ? " with " + step.target.event : "eventless",
+      info
+    );
+    if (step.child && step.child.length > 0) {
+      printNextStates(step.child, unList, true);
+    }
+
+  })
+  domElement.appendChild(unList);
+}
+
+function createLiElement(div, keyString, valueString, subValueString) {
+  let li = document.createElement("li");
+  let key = document.createElement("strong");
+  key.textContent = keyString;
+  key.className = "machine";
+  li.appendChild(key);
+  let value = document.createElement("p");
+  value.textContent = valueString;
+  value.className = "machine";
+  li.appendChild(value);
+  if (subValueString) {
+    let subValue = document.createElement("small");
+    subValue.textContent = subValueString;
+    subValue.className = "machine";
+    li.appendChild(subValue);
+  }
+  div.appendChild(li);
+}
+
+/**
+ * recursive algorithm that from a digraph representation of a xstate machine returns 
+ * an array containing all the targets for a given state. a target contains:
+ * - informations about the edge (target field)
+ * - child array containing all the targets for the destination of the edge contained in the target field
+ * @param {any} currentState retrieved from the Xstate interpreter
+ * @param {number} depth if null, will be initialized to 0
+ * @param {*} hierarchy if null, will be created from current state
+ * @param {*} parentNode
+ * @returns array containing all possible edges for the current state
+ */
+function predictiveStep(currentState, depth, hierarchy, parentNode) {
+  let step = []; // array containing all possible edges for the current state 
+  if (depth == null) {
+    // if depth is not defined, initialize hierarchy (i.e. a string containing all the hfsm for a given state)
+    depth = 0;
+    hierarchy = getHierarchyStates(currentState);
+  }
+  else {
+    depth++;
+  }
+
+  let subgraphs = []; // array containing all subgraphs for each node in the hierarchy
+  hierarchy && hierarchy.forEach((node, index) => {
+    let nodeObj = filterChild(index == 0 ? diGraph.children : subgraphs[index - 1].children, node);
+    nodeObj && subgraphs.push(nodeObj);
+  });
+  // scan each subgraph
+  subgraphs.forEach(subgraph => {
+    // scan each edge within the subgraph
+    subgraph.edges.forEach(edge => {
+      // create hierarchy for  destination 
+      let newHierarchy = edge.target.path;
+      if (!newHierarchy.includes(edge.target.key)) {
+        newHierarchy.push(edge.target.key);
+      }
+      // add edge to array
+      step.push(createEdge(edge, newHierarchy, depth, subgraph.stateNode.key));
+    });
+
+    if (depth == MAX_DEPTH && subgraph.stateNode.initial) {
+      // if depth has reached max and the fsm has an initial state, retrieve it 
+      let initialState = filterChild(subgraph.children, subgraph.stateNode.initial)
+      if (initialState && parentNode == INITIAL_STATE) {
+        // if parent node is the initial state, add edge to array
+        initialState.edges.forEach(edge => {
+          step.push(createEdge(edge, null, depth, parentNode));
+        })
+      }
+    }
+
+  });
+
+  return step;
+}
+
+/**
+ * get the hierarchy, i.e. the parent fsm of a given xstate state node object returned by the 
+ * xstate interpreter. 
+ * @param {any} currentState the current state of the fsm 
+ * @returns {string} the hierarchy of a given state. 
+ * for example, the state {"range" : {"drag": "left"}} will return "range drag left"
+ */
+function getHierarchyStates(currentState) {
+  let states = [];
+  let parent = getStateName(currentState);
+  if (parent != null) {
+    if (typeof parent !== "string") {
+      Object.keys(parent).forEach(child => {
+        states.push(child, ...getHierarchyStates(currentState[parent][child]))
+      });
+    }
+    else {
+      states.push(parent, ...getHierarchyStates(currentState[parent]));
+    }
+  }
+  else {
+    states.push(currentState);
+  }
+  return states;
+}
+
+function getStateName(stateValue) {
+  return typeof stateValue === "string" ? null : Object.keys(stateValue)[0];
+}
+
+function filterChild(children, name) {
+  return children ? children.filter(child => child.stateNode.key == name)[0] : null;
+}
+
+/**
+ * create an edge for the predictive step algorithm and re-runs the algorithm if depth has not reached
+ * MAX_DEPTH, to add edges for the current target
+ * @param {DirectedGraphEdge} edge 
+ * @param {string} hierarchy string returned by the getHierarchyStates method
+ * @param {number} depth integer containing the current depth of the predictive step algorithm
+ * @param {string} parentKey id of the origin that is associated to this particular edge
+ * @returns {JSON} object containing two fields: target and child 
+ */
+function createEdge(edge, hierarchy, depth, parentKey) {
+  // get destination from path
+  let destination = edge.target.path.join(" ");
+  let initial = edge.target.initial; // consider also initial state (if hfsm is involved)
+  destination += initial != null && !edge.target.path.includes(initial) ? " " + initial : "";
+  return {
+    // target, i.e. destination for a given event
+    target: {
+      event: edge.transition.event,
+      cond: edge.transition.cond ? edge.transition.cond.name : "",
+      destination: destination
+    },
+    // child, i.e. set of edges for the target. re-apply predictive step if depth is not max
+    child: depth < MAX_DEPTH ? predictiveStep(null, depth, hierarchy, parentKey) : []
   }
 }

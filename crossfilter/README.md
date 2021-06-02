@@ -13,3 +13,7 @@ A live demo can be found on [GitHub Pages](https://biggerhao.github.io/widgets/c
 ## Known issues
 
 1. Resetting brushes by double clicking is not supported.
+
+## Acknowledgment
+
+Part of the code is from [XStateVisualization](https://github.com/GiovFiordeponti/XStateVisualization).
