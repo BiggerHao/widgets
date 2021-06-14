@@ -1,5 +1,7 @@
 # Crossfilter
 
+An example of how the widget models could be applied to create the state chart of a complex, real visualization like crossfilter. 
+
 ## How to use
 
 1. Run `yarn` to install dependencies.
