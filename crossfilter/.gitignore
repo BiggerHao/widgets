@@ -2,3 +2,6 @@ node_modules/
 .parcel-cache/
 dist/
 bak/
+transition-generator/events/
+transition-generator/states/
+transition-generator/build/
