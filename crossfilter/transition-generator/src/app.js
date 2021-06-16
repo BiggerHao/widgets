@@ -1,16 +1,25 @@
 import { crossfilterMachine } from "../../flights/crossfilter-machine";
 import StateTransitionGenerator from "./StateTransitionGenerator";
 import { assign } from "xstate";
+import TransitionProbabilityGenerator from "./TransitionProbabilityGenerator";
 
 main();
 
-function main() {
+async function main() {
   const machine = initializeMachine(crossfilterMachine);
-  const generator = new StateTransitionGenerator(machine);
+  const transitionGenerator = new StateTransitionGenerator(machine);
 
-  generator.generateStateTransitions(
-    "../events/test_events.json",
-    "../states/test_states.jsonl"
+  transitionGenerator.generateStateTransitions(
+    "../data/events/test_events.json",
+    "../data/states/test_states.jsonl"
+  );
+
+  probabilityGenerator = new TransitionProbabilityGenerator();
+  await probabilityGenerator.readTransitionFile(
+    "../data/states/test_states.jsonl"
+  );
+  probabilityGenerator.generateTransitionProbabilities(
+    "../data/probabilities/test_probabilities.json"
   );
 }
 
