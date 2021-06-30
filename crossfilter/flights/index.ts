@@ -202,6 +202,11 @@ new App(views, db, {
       }
     });
 
+    const viewInfo = {
+      view: view,
+      activeViewName: ""
+    };
+
     registerEventListeners(
       crossfilterService,
       eventNameSuffixes,
@@ -210,7 +215,8 @@ new App(views, db, {
       reset,
       handleA,
       handleB,
-      bar
+      bar,
+      viewInfo
     );
 
     crossfilterService.start();
@@ -277,7 +283,8 @@ function registerEventListeners(
   reset,
   handleA,
   handleB,
-  bar
+  bar,
+  viewInfo
 ) {
   // Event listeners on widget.
   for (const [viewName, singleWidget] of widget.entries()) {
@@ -288,9 +295,11 @@ function registerEventListeners(
         type: `mouseenter${eventNameSuffix}`,
         viewName: viewName,
       });
+      viewInfo.activeViewName = viewName;
     });
     singleWidget.addEventListener("mouseleave", () => {
       crossfilterService.send("mouseleaveWidget");
+      viewInfo.activeViewName = "";
     });
   }
 
@@ -321,7 +330,7 @@ function registerEventListeners(
   for (const [viewName, singleHandleB] of handleB.entries()) {
     singleHandleB.forEach(function (element) {
       element.addEventListener("mousedown", (event) => {
-        crossfilterService.send({type: "mousedown", target: "B"});
+        crossfilterService.send({ type: "mousedown", target: "B" });
       });
     });
   }
@@ -329,7 +338,7 @@ function registerEventListeners(
   // Event listeners on bar.
   for (const [viewName, singleBar] of bar.entries()) {
     singleBar.addEventListener("mousedown", (event) => {
-      crossfilterService.send({type: "mousedown", target: "bar"});
+      crossfilterService.send({ type: "mousedown", target: "bar" });
     });
   }
 
@@ -338,7 +347,19 @@ function registerEventListeners(
     crossfilterService.send(event);
   });
   document.addEventListener("mousemove", (event) => {
-    crossfilterService.send(event);
+    if (viewInfo.activeViewName !== "") {
+      const activeView = viewInfo.view.get(viewInfo.activeViewName);
+      const brushValues = activeView.signal("brush");
+      if (typeof brushValues === "object") {
+        crossfilterService.send({
+          type: "mousemove",
+          valueA: brushValues[0],
+          valueB: brushValues[1]
+        });
+      } else {
+        crossfilterService.send("mousemove");
+      }
+    }
   });
 }
 

@@ -45,17 +45,13 @@ export const crossfilterMachine = createMachine(
         context.brushExists.get(context.activeViewName),
       targetMatches: (context, event, { cond }) => event.target == cond.target,
       progressA: (context, event) =>
-        context.view.get(context.activeViewName).signal("brush")[0] >
-        context.valueA.get(context.activeViewName),
+        event.valueA > context.valueA.get(context.activeViewName),
       regressA: (context, event) =>
-        context.view.get(context.activeViewName).signal("brush")[0] <
-        context.valueA.get(context.activeViewName),
+        event.valueA < context.valueA.get(context.activeViewName),
       progressB: (context, event) =>
-        context.view.get(context.activeViewName).signal("brush")[1] >
-        context.valueB.get(context.activeViewName),
+        event.valueB > context.valueB.get(context.activeViewName),
       regressB: (context, event) =>
-        context.view.get(context.activeViewName).signal("brush")[1] <
-        context.valueB.get(context.activeViewName),
+        event.valueB < context.valueB.get(context.activeViewName),
       minA: (context, event) =>
         context.valueA.get(context.activeViewName) ==
         context.minValue.get(context.activeViewName),
@@ -110,15 +106,9 @@ export const crossfilterMachine = createMachine(
       }),
       updateValues: assign({
         valueA: (context, event) =>
-          context.valueA.set(
-            context.activeViewName,
-            context.view.get(context.activeViewName).signal("brush")[0]
-          ),
+          context.valueA.set(context.activeViewName, event.valueA),
         valueB: (context, event) =>
-          context.valueB.set(
-            context.activeViewName,
-            context.view.get(context.activeViewName).signal("brush")[1]
-          ),
+          context.valueB.set(context.activeViewName, event.valueB),
       }),
       resetValues: assign({
         valueA: (context, event) =>
