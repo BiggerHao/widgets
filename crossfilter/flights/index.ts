@@ -297,7 +297,7 @@ function registerEventListeners(
   // Event listeners on chart background.
   for (const [viewName, singleChartBackground] of chartBackground.entries()) {
     singleChartBackground.addEventListener("mousedown", () => {
-      crossfilterService.send("mousedownChart");
+      crossfilterService.send({ type: "mousedown", target: "chart" });
     });
   }
 
@@ -312,7 +312,7 @@ function registerEventListeners(
   for (const [viewName, singleHandleA] of handleA.entries()) {
     singleHandleA.forEach(function (element) {
       element.addEventListener("mousedown", (event) => {
-        crossfilterService.send("mousedownA");
+        crossfilterService.send({ type: "mousedown", target: "A" });
       });
     });
     singleHandleA.forEach(function (element) {
@@ -331,7 +331,7 @@ function registerEventListeners(
   for (const [viewName, singleHandleB] of handleB.entries()) {
     singleHandleB.forEach(function (element) {
       element.addEventListener("mousedown", (event) => {
-        crossfilterService.send("mousedownB");
+        crossfilterService.send({type: "mousedown", target: "B"});
       });
     });
     singleHandleB.forEach(function (element) {
@@ -349,7 +349,7 @@ function registerEventListeners(
   // Event listeners on bar.
   for (const [viewName, singleBar] of bar.entries()) {
     singleBar.addEventListener("mousedown", (event) => {
-      crossfilterService.send("mousedownBar");
+      crossfilterService.send({type: "mousedown", target: "bar"});
     });
     singleBar.addEventListener("mouseenter", (event) => {
       crossfilterService.send("mouseenterBar");

@@ -4,10 +4,6 @@ import {
   generateMouseenterTransitions,
 } from "./range-slider-machine.js";
 
-function hovering(element) {
-  return element.matches(":hover");
-}
-
 const crossfilterId = "crossfilter";
 
 export const crossfilterMachine = createMachine(
@@ -47,12 +43,7 @@ export const crossfilterMachine = createMachine(
       brushExists: (context, event) => context.brushExists.get(event.viewName),
       activeBrushExists: (context, event) =>
         context.brushExists.get(context.activeViewName),
-      onA: (context, event) =>
-        context.handleA.get(context.activeViewName).some(hovering),
-      onB: (context, event) =>
-        context.handleB.get(context.activeViewName).some(hovering),
-      onBar: (context, event) =>
-        context.bar.get(context.activeViewName).matches(":hover"),
+      targetMatches: (context, event, { cond }) => event.target == cond.target,
       progressA: (context, event) =>
         context.view.get(context.activeViewName).signal("brush")[0] >
         context.valueA.get(context.activeViewName),

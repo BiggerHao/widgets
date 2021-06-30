@@ -6,7 +6,10 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
         states: {
           idle: {
             on: {
-              mousedownChart: "readyToAddBrush",
+              mousedown: {
+                target: "readyToAddBrush",
+                cond: { type: "targetMatches", target: "chart" },
+              },
             },
           },
           readyToAddBrush: {
@@ -45,19 +48,15 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
             states: {
               idle: {
                 on: {
-                  mouseenterA: "hovering",
+                  mousedown: {
+                    target: "startMoving",
+                    cond: { type: "targetMatches", target: "A" },
+                  },
                 },
                 always: [
-                  { target: "hovering", cond: "onA" },
                   { target: "extreme.min", cond: "minA" },
                   { target: "extreme.max", cond: "maxA" },
                 ],
-              },
-              hovering: {
-                on: {
-                  mousedownA: "startMoving",
-                  mouseleaveA: "idle",
-                },
               },
               startMoving: {
                 on: {
@@ -135,8 +134,14 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
               },
               extreme: {
                 on: {
-                  mouseenterA: "hovering",
-                  mousedownBar: "updating",
+                  mousedown: {
+                    target: "startMoving",
+                    cond: { type: "targetMatches", target: "A" },
+                  },
+                  mousedown: {
+                    target: "updating",
+                    cond: { type: "targetMatches", target: "bar" },
+                  },
                 },
                 states: {
                   min: {},
@@ -155,19 +160,15 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
             states: {
               idle: {
                 on: {
-                  mouseenterB: "hovering",
+                  mousedown: {
+                    target: "startMoving",
+                    cond: { type: "targetMatches", target: "B" },
+                  },
                 },
                 always: [
-                  { target: "hovering", cond: "onB" },
                   { target: "extreme.min", cond: "minB" },
                   { target: "extreme.max", cond: "maxB" },
                 ],
-              },
-              hovering: {
-                on: {
-                  mousedownB: "startMoving",
-                  mouseleaveB: "idle",
-                },
               },
               startMoving: {
                 on: {
@@ -245,8 +246,16 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
               },
               extreme: {
                 on: {
-                  mouseenterB: "hovering",
-                  mousedownBar: "updating",
+                  mousedown: [
+                    {
+                      target: "startMoving",
+                      cond: { type: "targetMatches", target: "B" },
+                    },
+                    {
+                      target: "updating",
+                      cond: { type: "targetMatches", target: "bar" },
+                    },
+                  ],
                 },
                 states: {
                   min: {},
@@ -265,20 +274,16 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
             states: {
               idle: {
                 on: {
-                  mouseenterBar: "hovering",
+                  mousedown: {
+                    target: "startMoving",
+                    cond: { type: "targetMatches", target: "bar" },
+                  },
                 },
                 always: [
-                  { target: "hovering", cond: "onBar" },
                   { target: "minMax", cond: "minMaxBar" },
                   { target: "extreme.min", cond: "minBar" },
                   { target: "extreme.max", cond: "maxBar" },
                 ],
-              },
-              hovering: {
-                on: {
-                  mousedownBar: "startMoving",
-                  mouseleaveBar: "idle",
-                },
               },
               startMoving: {
                 on: {
@@ -356,9 +361,20 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
               },
               extreme: {
                 on: {
-                  mouseenterBar: "hovering",
-                  mousedownA: "updating",
-                  mousedownB: "updating",
+                  mousedown: [
+                    {
+                      target: "startMoving",
+                      cond: { type: "targetMatches", target: "bar" },
+                    },
+                    {
+                      target: "updating",
+                      cond: { type: "targetMatches", target: "A" },
+                    },
+                    {
+                      target: "updating",
+                      cond: { type: "targetMatches", target: "B" },
+                    },
+                  ],
                 },
                 states: {
                   min: {},
@@ -367,8 +383,16 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
               },
               minMax: {
                 on: {
-                  mousedownA: "updating",
-                  mousedownB: "updating",
+                  mousedown: [
+                    {
+                      target: "updating",
+                      cond: { type: "targetMatches", target: "A" },
+                    },
+                    {
+                      target: "updating",
+                      cond: { type: "targetMatches", target: "B" },
+                    },
+                  ],
                 },
               },
               updating: {
