@@ -2,7 +2,7 @@ import { App, ArrowDB, Views } from "falcon-vis";
 import { config } from "../config";
 import { EmptyLogger } from "./empty-logger";
 import { crossfilterMachine } from "./crossfilter-machine";
-import { interpret, mapState } from "xstate";
+import { interpret } from "xstate";
 import { toDirectedGraph } from '@xstate/graph';
 
 const MAX_DEPTH = 1;
@@ -315,16 +315,6 @@ function registerEventListeners(
         crossfilterService.send({ type: "mousedown", target: "A" });
       });
     });
-    singleHandleA.forEach(function (element) {
-      element.addEventListener("mouseenter", (event) => {
-        crossfilterService.send("mouseenterA");
-      });
-    });
-    singleHandleA.forEach(function (element) {
-      element.addEventListener("mouseleave", (event) => {
-        crossfilterService.send("mouseleaveA");
-      });
-    });
   }
 
   // Event listeners on handleB.
@@ -334,28 +324,12 @@ function registerEventListeners(
         crossfilterService.send({type: "mousedown", target: "B"});
       });
     });
-    singleHandleB.forEach(function (element) {
-      element.addEventListener("mouseenter", (event) => {
-        crossfilterService.send("mouseenterB");
-      });
-    });
-    singleHandleB.forEach(function (element) {
-      element.addEventListener("mouseleave", (event) => {
-        crossfilterService.send("mouseleaveB");
-      });
-    });
   }
 
   // Event listeners on bar.
   for (const [viewName, singleBar] of bar.entries()) {
     singleBar.addEventListener("mousedown", (event) => {
       crossfilterService.send({type: "mousedown", target: "bar"});
-    });
-    singleBar.addEventListener("mouseenter", (event) => {
-      crossfilterService.send("mouseenterBar");
-    });
-    singleBar.addEventListener("mouseleave", (event) => {
-      crossfilterService.send("mouseleaveBar");
     });
   }
 
