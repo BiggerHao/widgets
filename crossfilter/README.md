@@ -13,7 +13,7 @@ To start up a development server:
 To build a production version of the application:
 
 1. Run `yarn` to install dependencies.
-2. Run `yarn run build:flights` to build. The output files will be placed under the `dist `folder.
+2. Run `yarn run build:flights` to build. The output files will be placed under the `dist` folder.
 
 To generate state transition probabilities based on existing events:
 
