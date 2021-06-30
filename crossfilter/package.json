@@ -6,9 +6,21 @@
   "private": true,
   "scripts": {
     "start:flights": "parcel flights/index.html",
-    "build:flights": "shx rm -rf dist && parcel build --public-url /widgets/crossfilter/ flights/index.html",
+    "build:flights": "shx rm -rf dist && parcel build --public-url /widgets/crossfilter/ flights/index.html --target browser --dist-dir dist/",
     "deploy:flights": "gh-pages -d dist -e crossfilter",
-    "build:generator": "parcel build transition-generator/src/app.js --dist-dir transition-generator/build"
+    "build:generator": "parcel build transition-generator/src/app.js --dist-dir transition-generator/build --target node"
+  },
+  "targets": {
+    "browser": {
+      "engines": {
+        "browsers": "> 0.25%"
+      }
+    },
+    "node": {
+      "engines": {
+        "node": "14"
+      }
+    }
   },
   "dependencies": {
     "@xstate/graph": "^1.3.0",
@@ -23,8 +35,5 @@
   },
   "resolutions": {
     "@mapd/connector": "5.1.0"
-  },
-  "engines": {
-    "node": "14"
   }
 }
