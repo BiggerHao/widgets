@@ -8,7 +8,8 @@
     "start:flights": "parcel flights/index.html",
     "build:flights": "shx rm -rf dist && parcel build --public-url /widgets/crossfilter/ flights/index.html --target browser --dist-dir dist/",
     "deploy:flights": "gh-pages -d dist -e crossfilter",
-    "build:generator": "parcel build transition-generator/src/app.js --dist-dir transition-generator/build --target node"
+    "build:transition": "parcel build transition-generator/src/generate_transitions.js --dist-dir transition-generator/build --target node",
+    "build:probability": "parcel build transition-generator/src/generate_probabilities.js --dist-dir transition-generator/build --target node"
   },
   "targets": {
     "browser": {

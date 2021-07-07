@@ -1,6 +1,8 @@
+import { createWriteStream, mkdirSync, readFileSync } from "fs";
+
+import { dirname } from "path";
 import { interpret } from "xstate";
 import { join } from "path";
-import { createWriteStream, readFileSync } from "fs";
 
 export default class StateTransitionGenerator {
   constructor(machine) {
@@ -11,7 +13,11 @@ export default class StateTransitionGenerator {
     const service = interpret(this.machine);
     const events = readEvents(join(__dirname, eventsFilePath));
 
-    const outputFile = createWriteStream(join(__dirname, outputFilePath));
+    outputFilePath = join(__dirname, outputFilePath);
+    mkdirSync(dirname(outputFilePath), { recursive: true }, (err) => {
+      if (err) throw err;
+    });
+    const outputFile = createWriteStream(outputFilePath);
 
     service.onTransition((state) => {
       outputFile.write(`${JSON.stringify(state.value)}\n`);

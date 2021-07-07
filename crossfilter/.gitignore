@@ -3,3 +3,4 @@ node_modules/
 dist/
 bak/
 transition-generator/build/
+transition-generator/data/

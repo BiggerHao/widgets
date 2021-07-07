@@ -18,9 +18,9 @@ To build a production version of the application:
 To generate state transition probabilities based on existing events:
 
 1. Run `yarn` to install dependencies.
-2. Modify the paths in `transition-generator/src/app.js` depending on where your input event file is and where you want to put the output files.
-3. Run `build:generator` to build the generator.
-4. Run `node ./transition-generator/build/app.js`.
+2. Run `build:transition` and `build:probability` to build the state transition generator and the transition probability generator, respectively.
+3. Run `node ./transition-generator/build/generate_transitions.js` to generate state transitions.
+4. Run `node ./transition-generator/build/generate_probabilities.js` to generate transition probabilities.
 
 ## Live demo
 

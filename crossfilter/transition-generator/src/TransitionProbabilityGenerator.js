@@ -1,6 +1,8 @@
-import { createReadStream, writeFileSync } from "fs";
-import { join } from "path";
+import { createReadStream, mkdirSync, writeFileSync } from "fs";
+
 import { createInterface } from "readline";
+import { dirname } from "path";
+import { join } from "path";
 
 export default class TransitionProbabilityGenerator {
   constructor() {
@@ -43,10 +45,11 @@ export default class TransitionProbabilityGenerator {
     }
 
     if (outputFilePath) {
-      writeFileSync(
-        join(__dirname, outputFilePath),
-        JSON.stringify(transitionProbabilities)
-      );
+      outputFilePath = join(__dirname, outputFilePath);
+      mkdirSync(dirname(outputFilePath), { recursive: true }, (err) => {
+        if (err) throw err;
+      });
+      writeFileSync(outputFilePath, JSON.stringify(transitionProbabilities));
     }
     return transitionProbabilities;
   }

@@ -1,6 +1,0 @@
-[
-  { "type": "mouseenterDistance" },
-  { "type": "mousemove" },
-  { "type": "mousemove" },
-  { "type": "mouseleaveWidget" }
-]
