@@ -40,7 +40,10 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
             target: "noBrush",
             actions: ["resetBrushExists", "resetValues"],
           },
-          mousedownChart: "noBrush.readyToAddBrush",
+          mousedown: {
+            target: "noBrush.readyToAddBrush",
+            cond: { type: "targetMatches", target: "chart" },
+          },
         },
         states: {
           handleA: {
