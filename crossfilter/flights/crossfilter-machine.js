@@ -6,6 +6,15 @@ import {
 
 const crossfilterId = "crossfilter";
 
+const targetViewNames = {
+  distance: "DISTANCE",
+  arrTime: "ARR_TIME",
+  depTime: "DEP_TIME",
+  depDelay: "DEP_DELAY",
+  arrDelay: "ARR_DELAY",
+  airTime: "AIR_TIME",
+};
+
 export const crossfilterMachine = createMachine(
   {
     id: crossfilterId,
@@ -43,7 +52,8 @@ export const crossfilterMachine = createMachine(
   {
     guards: {
       brushExists: (context, event, { cond }) =>
-        event.target == cond.target && context.brushExists.get(event.target),
+        event.target == cond.target &&
+        context.brushExists.get(targetViewNames[event.target]),
       activeBrushExists: (context, event) =>
         context.brushExists.get(context.activeViewName),
       targetMatches: (context, event, { cond }) => event.target == cond.target,
@@ -94,7 +104,7 @@ export const crossfilterMachine = createMachine(
     },
     actions: {
       setActiveView: assign({
-        activeViewName: (context, event) => event.target,
+        activeViewName: (context, event) => targetViewNames[event.target],
       }),
       resetActiveView: assign({
         activeViewName: null,
