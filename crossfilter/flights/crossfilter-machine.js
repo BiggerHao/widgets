@@ -24,18 +24,20 @@ export const crossfilterMachine = createMachine(
         entry: "resetActiveView",
         on: {
           mouseenter: [
-            ...generateMouseenterTransitions("distance"),
-            ...generateMouseenterTransitions("arrTime"),
-            ...generateMouseenterTransitions("depTime"),
-            ...generateMouseenterTransitions("depDelay"),
-            ...generateMouseenterTransitions("arrDelay"),
-            ...generateMouseenterTransitions("airTime"),
+            generateMouseenterTransitions("distance"),
+            generateMouseenterTransitions("arrTime"),
+            generateMouseenterTransitions("depTime"),
+            generateMouseenterTransitions("depDelay"),
+            generateMouseenterTransitions("arrDelay"),
+            generateMouseenterTransitions("airTime"),
           ],
         },
       },
       active: {
         entry: "setActiveView",
         on: {
+          // This transition has lower priority if innder nodes define
+          // mouseleave transitions.
           mouseleave: "inactive",
         },
         states: {
@@ -52,11 +54,12 @@ export const crossfilterMachine = createMachine(
   {
     guards: {
       brushExists: (context, event, { cond }) =>
-        event.target == cond.target &&
-        context.brushExists.get(targetViewNames[event.target]),
+        context.brushExists.get(targetViewNames[cond.target]),
       activeBrushExists: (context, event) =>
         context.brushExists.get(context.activeViewName),
       targetMatches: (context, event, { cond }) => event.target == cond.target,
+      temporaryStateMatches: (context, event, { cond }) =>
+        context.temporaryState == cond.target,
       progressA: (context, event) =>
         event.valueA > context.valueA.get(context.activeViewName),
       regressA: (context, event) =>
@@ -106,6 +109,10 @@ export const crossfilterMachine = createMachine(
       setActiveView: assign({
         activeViewName: (context, event) => targetViewNames[event.target],
       }),
+      setTemporaryStateAsActiveView: assign({
+        activeViewName: (context, event) =>
+          targetViewNames[context.temporaryState],
+      }),
       resetActiveView: assign({
         activeViewName: null,
       }),
@@ -128,6 +135,12 @@ export const crossfilterMachine = createMachine(
           context.valueA.set(context.activeViewName, 0),
         valueB: (context, event) =>
           context.valueB.set(context.activeViewName, 0),
+      }),
+      setTemporaryState: assign({
+        temporaryState: (context, event) => event.target,
+      }),
+      resetTemporaryState: assign({
+        temporaryState: null,
       }),
     },
   }

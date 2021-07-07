@@ -1,6 +1,16 @@
 export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
   return {
+    initial: "temporary",
     states: {
+      temporary: {
+        always: [
+          {
+            target: "hasBrush",
+            cond: { type: "brushExists", target: rangeSliderId },
+          },
+          { target: "noBrush" },
+        ],
+      },
       noBrush: {
         initial: "idle",
         states: {
@@ -14,7 +24,10 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
           },
           readyToAddBrush: {
             on: {
-              mousemove: { target: "addingBrush", actions: "setBrushExists" },
+              mousemove: {
+                target: "addingBrush",
+                actions: ["setBrushExists", "resetTemporaryState"],
+              },
               mouseup: [
                 {
                   target: `#${crossfilterId}.active.${rangeSliderId}.hasBrush`,
@@ -28,7 +41,9 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
             entry: "updateValues",
             on: {
               mousemove: { target: "addingBrush", internal: false },
-              mouseup: `#${crossfilterId}.active.${rangeSliderId}.hasBrush`,
+              mouseup: generateMouseupTransitions(crossfilterId, rangeSliderId),
+              mouseenter: { actions: "setTemporaryState" },
+              mouseleave: { actions: "setTemporaryState" },
             },
           },
         },
@@ -54,6 +69,7 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
                   mousedown: {
                     target: "startMoving",
                     cond: { type: "targetMatches", target: "A" },
+                    actions: "resetTemporaryState",
                   },
                 },
                 always: [
@@ -95,7 +111,12 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
                       internal: false,
                     },
                   ],
-                  mouseup: "idle",
+                  mouseup: generateMouseupTransitions(
+                    crossfilterId,
+                    rangeSliderId
+                  ),
+                  mouseenter: { actions: "setTemporaryState" },
+                  mouseleave: { actions: "setTemporaryState" },
                 },
                 always: [
                   {
@@ -114,7 +135,12 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
               },
               movingExtreme: {
                 on: {
-                  mouseup: "idle",
+                  mouseup: generateMouseupTransitions(
+                    crossfilterId,
+                    rangeSliderId
+                  ),
+                  mouseenter: { actions: "setTemporaryState" },
+                  mouseleave: { actions: "setTemporaryState" },
                 },
                 states: {
                   min: {
@@ -140,6 +166,7 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
                   mousedown: {
                     target: "startMoving",
                     cond: { type: "targetMatches", target: "A" },
+                    actions: "resetTemporaryState",
                   },
                   mousedown: {
                     target: "updating",
@@ -166,6 +193,7 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
                   mousedown: {
                     target: "startMoving",
                     cond: { type: "targetMatches", target: "B" },
+                    actions: "resetTemporaryState",
                   },
                 },
                 always: [
@@ -185,7 +213,12 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
                       cond: "regressB",
                     },
                   ],
-                  mouseup: "idle",
+                  mouseup: generateMouseupTransitions(
+                    crossfilterId,
+                    rangeSliderId
+                  ),
+                  mouseenter: { actions: "setTemporaryState" },
+                  mouseleave: { actions: "setTemporaryState" },
                 },
                 always: [
                   { target: "movingExtreme.min", cond: "minB" },
@@ -226,7 +259,12 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
               },
               movingExtreme: {
                 on: {
-                  mouseup: "idle",
+                  mouseup: generateMouseupTransitions(
+                    crossfilterId,
+                    rangeSliderId
+                  ),
+                  mouseenter: { actions: "setTemporaryState" },
+                  mouseleave: { actions: "setTemporaryState" },
                 },
                 states: {
                   min: {
@@ -253,6 +291,7 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
                     {
                       target: "startMoving",
                       cond: { type: "targetMatches", target: "B" },
+                      actions: "resetTemporaryState",
                     },
                     {
                       target: "updating",
@@ -280,6 +319,7 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
                   mousedown: {
                     target: "startMoving",
                     cond: { type: "targetMatches", target: "bar" },
+                    actions: "resetTemporaryState",
                   },
                 },
                 always: [
@@ -322,7 +362,12 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
                       internal: false,
                     },
                   ],
-                  mouseup: "idle",
+                  mouseup: generateMouseupTransitions(
+                    crossfilterId,
+                    rangeSliderId
+                  ),
+                  mouseenter: { actions: "setTemporaryState" },
+                  mouseleave: { actions: "setTemporaryState" },
                 },
                 always: [
                   {
@@ -341,7 +386,12 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
               },
               movingExtreme: {
                 on: {
-                  mouseup: "idle",
+                  mouseup: generateMouseupTransitions(
+                    crossfilterId,
+                    rangeSliderId
+                  ),
+                  mouseenter: { actions: "setTemporaryState" },
+                  mouseleave: { actions: "setTemporaryState" },
                 },
                 states: {
                   min: {
@@ -368,6 +418,7 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
                     {
                       target: "startMoving",
                       cond: { type: "targetMatches", target: "bar" },
+                      actions: "resetTemporaryState",
                     },
                     {
                       target: "updating",
@@ -412,14 +463,42 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
 }
 
 export function generateMouseenterTransitions(rangeSliderId) {
-  return [
+  return {
+    target: `active.${rangeSliderId}`,
+    cond: { type: "targetMatches", target: rangeSliderId },
+  };
+}
+
+const stateNames = [
+  "distance",
+  "arrTime",
+  "depTime",
+  "depDelay",
+  "arrDelay",
+  "airTime",
+];
+
+function generateMouseupTransitions(crossfilterId, rangeSliderId) {
+  let transitions = [
     {
-      target: `active.${rangeSliderId}.hasBrush`,
-      cond: { type: "brushExists", target: rangeSliderId },
-    },
-    {
-      target: `active.${rangeSliderId}.noBrush`,
-      cond: { type: "targetMatches", target: rangeSliderId },
+      target: `#${crossfilterId}.inactive`,
+      cond: { type: "temporaryStateMatches", target: "inactive" },
     },
   ];
+
+  for (const stateName of stateNames) {
+    if (stateName != rangeSliderId) {
+      transitions.push({
+        target: `#${crossfilterId}.active.${stateName}`,
+        cond: { type: "temporaryStateMatches", target: stateName },
+        actions: "setTemporaryStateAsActiveView",
+      });
+    }
+  }
+
+  transitions.push({
+    target: `#${crossfilterId}.active.${rangeSliderId}`,
+  });
+
+  return transitions;
 }

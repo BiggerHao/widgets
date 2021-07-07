@@ -293,11 +293,9 @@ function registerEventListeners(
         type: `mouseenter`,
         target: eventTargets[viewName],
       });
-      viewInfo.activeViewName = viewName;
     });
     singleWidget.addEventListener("mouseleave", () => {
-      crossfilterService.send("mouseleave");
-      viewInfo.activeViewName = "";
+      crossfilterService.send({ type: "mouseleave", target: "inactive" });
     });
   }
 
@@ -305,6 +303,7 @@ function registerEventListeners(
   for (const [viewName, singleChartBackground] of chartBackground.entries()) {
     singleChartBackground.addEventListener("mousedown", () => {
       crossfilterService.send({ type: "mousedown", target: "chart" });
+      viewInfo.activeViewName = viewName;
     });
   }
 
@@ -320,6 +319,7 @@ function registerEventListeners(
     singleHandleA.forEach(function (element) {
       element.addEventListener("mousedown", (event) => {
         crossfilterService.send({ type: "mousedown", target: "A" });
+        viewInfo.activeViewName = viewName;
       });
     });
   }
@@ -329,6 +329,7 @@ function registerEventListeners(
     singleHandleB.forEach(function (element) {
       element.addEventListener("mousedown", (event) => {
         crossfilterService.send({ type: "mousedown", target: "B" });
+        viewInfo.activeViewName = viewName;
       });
     });
   }
@@ -337,12 +338,14 @@ function registerEventListeners(
   for (const [viewName, singleBar] of bar.entries()) {
     singleBar.addEventListener("mousedown", (event) => {
       crossfilterService.send({ type: "mousedown", target: "bar" });
+      viewInfo.activeViewName = viewName;
     });
   }
 
   // Event listeners on document.
   document.addEventListener("mouseup", (event) => {
     crossfilterService.send(event);
+    viewInfo.activeViewName = "";
   });
   document.addEventListener("mousemove", (event) => {
     if (viewInfo.activeViewName !== "") {
