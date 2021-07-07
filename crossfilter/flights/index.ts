@@ -1,6 +1,7 @@
 import { App, ArrowDB, Views } from "falcon-vis";
-import { config } from "../config";
+
 import { EmptyLogger } from "./empty-logger";
+import { config } from "../config";
 import { crossfilterMachine } from "./crossfilter-machine";
 import { interpret } from "xstate";
 import { toDirectedGraph } from '@xstate/graph';
@@ -117,6 +118,15 @@ const db = new ArrowDB<ViewName, DimensionName>(url);
 
 const logger = new EmptyLogger<ViewName>();
 
+const eventTargets = {
+  DISTANCE: "distance",
+  ARR_TIME: "arrTime",
+  DEP_TIME: "depTime",
+  DEP_DELAY: "depDelay",
+  ARR_DELAY: "arrDelay",
+  AIR_TIME: "airTime",
+};
+
 new App(views, db, {
   config: config,
   logger: logger,
@@ -138,14 +148,6 @@ new App(views, db, {
       DEP_DELAY: "dep_delay",
       ARR_DELAY: "arr_delay",
       AIR_TIME: "airtime",
-    };
-    const eventNameSuffixes = {
-      DISTANCE: "Distance",
-      ARR_TIME: "ArrTime",
-      DEP_TIME: "DepTime",
-      DEP_DELAY: "DepDelay",
-      ARR_DELAY: "ArrDelay",
-      AIR_TIME: "AirTime",
     };
     const view = getViews(_app, viewNames);
     const brushExists = new Map();
@@ -209,7 +211,6 @@ new App(views, db, {
 
     registerEventListeners(
       crossfilterService,
-      eventNameSuffixes,
       widget,
       chartBackground,
       reset,
@@ -277,7 +278,6 @@ function getSliderRange(view, minValue, maxValue) {
 
 function registerEventListeners(
   crossfilterService,
-  eventNameSuffixes,
   widget,
   chartBackground,
   reset,
@@ -288,17 +288,15 @@ function registerEventListeners(
 ) {
   // Event listeners on widget.
   for (const [viewName, singleWidget] of widget.entries()) {
-    const eventNameSuffix = eventNameSuffixes[viewName];
-
     singleWidget.addEventListener("mouseenter", () => {
       crossfilterService.send({
-        type: `mouseenter${eventNameSuffix}`,
-        viewName: viewName,
+        type: `mouseenter`,
+        target: eventTargets[viewName],
       });
       viewInfo.activeViewName = viewName;
     });
     singleWidget.addEventListener("mouseleave", () => {
-      crossfilterService.send("mouseleaveWidget");
+      crossfilterService.send("mouseleave");
       viewInfo.activeViewName = "";
     });
   }

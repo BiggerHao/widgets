@@ -1,4 +1,4 @@
-import { createMachine, assign } from "xstate";
+import { assign, createMachine } from "xstate";
 import {
   createRangeSliderMachine,
   generateMouseenterTransitions,
@@ -14,18 +14,20 @@ export const crossfilterMachine = createMachine(
       inactive: {
         entry: "resetActiveView",
         on: {
-          mouseenterDistance: generateMouseenterTransitions("distance"),
-          mouseenterArrTime: generateMouseenterTransitions("arrTime"),
-          mouseenterDepTime: generateMouseenterTransitions("depTime"),
-          mouseenterDepDelay: generateMouseenterTransitions("depDelay"),
-          mouseenterArrDelay: generateMouseenterTransitions("arrDelay"),
-          mouseenterAirTime: generateMouseenterTransitions("airTime"),
+          mouseenter: [
+            ...generateMouseenterTransitions("distance"),
+            ...generateMouseenterTransitions("arrTime"),
+            ...generateMouseenterTransitions("depTime"),
+            ...generateMouseenterTransitions("depDelay"),
+            ...generateMouseenterTransitions("arrDelay"),
+            ...generateMouseenterTransitions("airTime"),
+          ],
         },
       },
       active: {
         entry: "setActiveView",
         on: {
-          mouseleaveWidget: "inactive",
+          mouseleave: "inactive",
         },
         states: {
           distance: createRangeSliderMachine(crossfilterId, "distance"),
@@ -40,7 +42,8 @@ export const crossfilterMachine = createMachine(
   },
   {
     guards: {
-      brushExists: (context, event) => context.brushExists.get(event.viewName),
+      brushExists: (context, event, { cond }) =>
+        event.target == cond.target && context.brushExists.get(event.target),
       activeBrushExists: (context, event) =>
         context.brushExists.get(context.activeViewName),
       targetMatches: (context, event, { cond }) => event.target == cond.target,
@@ -91,7 +94,7 @@ export const crossfilterMachine = createMachine(
     },
     actions: {
       setActiveView: assign({
-        activeViewName: (context, event) => event.viewName,
+        activeViewName: (context, event) => event.target,
       }),
       resetActiveView: assign({
         activeViewName: null,

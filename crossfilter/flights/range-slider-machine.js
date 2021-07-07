@@ -413,7 +413,13 @@ export function createRangeSliderMachine(crossfilterId, rangeSliderId) {
 
 export function generateMouseenterTransitions(rangeSliderId) {
   return [
-    { target: `active.${rangeSliderId}.hasBrush`, cond: "brushExists" },
-    { target: `active.${rangeSliderId}.noBrush` },
+    {
+      target: `active.${rangeSliderId}.hasBrush`,
+      cond: { type: "brushExists", target: rangeSliderId },
+    },
+    {
+      target: `active.${rangeSliderId}.noBrush`,
+      cond: { type: "targetMatches", target: rangeSliderId },
+    },
   ];
 }
